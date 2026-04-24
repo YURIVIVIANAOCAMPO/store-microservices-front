@@ -68,8 +68,12 @@ const handlePurchase = async () => {
       <div v-if="product" class="grid grid-cols-1 lg:grid-cols-12 gap-10">
         <!-- Media Column -->
         <div class="lg:col-span-5 space-y-6">
-          <div class="bg-white border border-slate-200 p-16 rounded-3xl flex items-center justify-center aspect-square shadow-sm">
-            <Package :size="160" class="text-slate-100" />
+          <div class="aspect-square bg-white rounded-3xl overflow-hidden border border-slate-100 flex items-center justify-center relative group">
+            <img 
+              :src="`https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=800&sig=${product.sku}`" 
+              class="w-full h-full object-cover mix-blend-multiply opacity-90 transition-transform duration-700 group-hover:scale-105"
+              alt="Product Image"
+            />
           </div>
           
           <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
@@ -80,11 +84,11 @@ const handlePurchase = async () => {
             <div class="space-y-3 text-sm">
               <div class="flex justify-between py-2 border-b border-slate-50">
                 <span class="text-slate-500 font-medium">SKU Maestro</span>
-                <span class="font-mono font-bold text-slate-900">{{ product.sku }}</span>
+                <span class="font-bold text-slate-900">{{ product.sku }}</span>
               </div>
               <div class="flex justify-between py-2">
                 <span class="text-slate-500 font-medium">Referencia ID</span>
-                <span class="font-mono text-[10px] text-slate-400">{{ product.id }}</span>
+                <span class="text-[10px] text-slate-400 font-bold">{{ product.id }}</span>
               </div>
             </div>
           </div>
@@ -110,8 +114,14 @@ const handlePurchase = async () => {
             <!-- Stock Banner -->
             <div class="flex items-center justify-between p-6 bg-slate-50 rounded-2xl border border-slate-100">
               <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm text-primary">
-                  <Box :size="24" />
+                <!-- Hero Image -->
+                <div class="aspect-square bg-slate-50 rounded-[32px] overflow-hidden border border-slate-100 flex items-center justify-center relative group">
+                  <img 
+                    :src="`https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=800&sig=${product.sku}`" 
+                    class="w-full h-full object-cover mix-blend-multiply opacity-90 group-hover:scale-105 transition-transform duration-700"
+                    alt="Product Image"
+                  />
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent"></div>
                 </div>
                 <div>
                   <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Disponibilidad Actual</p>

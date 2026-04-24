@@ -190,20 +190,20 @@ const currencies = ['USD', 'COP', 'MXN'];
 
   <!-- Global Toast (Allegro Style) -->
   <transition name="toast">
-    <div v-if="prefs.toast.show" class="fixed bottom-10 right-10 z-[100] animate-in slide-in-from-right-10">
+    <div v-if="prefs.toast?.show" class="fixed bottom-10 right-10 z-[100] animate-in slide-in-from-right-10">
       <div 
         class="flex items-center gap-4 px-6 py-4 rounded-2xl shadow-2xl border"
         :class="[
-          prefs.toast.type === 'success' ? 'bg-[#001E2B] text-primary border-primary/20' : 
-          prefs.toast.type === 'error' ? 'bg-rose-900 text-white border-rose-500/30' : 
+          prefs.toast?.type === 'success' ? 'bg-[#001E2B] text-primary border-primary/20' : 
+          prefs.toast?.type === 'error' ? 'bg-rose-900 text-white border-rose-500/30' : 
           'bg-slate-900 text-white border-slate-700'
         ]"
       >
-        <CheckCircle v-if="prefs.toast.type === 'success'" :size="24" />
+        <CheckCircle v-if="prefs.toast?.type === 'success'" :size="24" />
         <AlertTriangle v-else :size="24" />
         <div class="pr-8">
            <p class="text-xs font-black uppercase tracking-widest opacity-50 mb-0.5">Notificación</p>
-           <p class="text-sm font-bold">{{ prefs.toast.message }}</p>
+           <p class="text-sm font-bold">{{ prefs.toast?.message }}</p>
         </div>
         <button @click="prefs.toast.show = false" class="absolute top-4 right-4 opacity-50 hover:opacity-100">
            <X :size="16" />

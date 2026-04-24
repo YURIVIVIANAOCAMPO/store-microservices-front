@@ -110,11 +110,16 @@ const changePage = (newPage) => {
             >
               {{ product.status }}
             </span>
-            <p class="text-[10px] text-slate-400 font-mono font-bold">{{ product.sku }}</p>
+            <p class="text-[10px] text-slate-400 font-bold tracking-tight">{{ product.sku }}</p>
           </div>
           
-          <div class="mb-4 aspect-square bg-slate-50 rounded-xl flex items-center justify-center text-slate-200 group-hover:text-primary/20 transition-colors">
-            <Package :size="64" />
+          <!-- Product Image -->
+          <div class="mb-4 aspect-square bg-slate-50 rounded-xl overflow-hidden border border-slate-100 flex items-center justify-center group-hover:border-primary/30 transition-all">
+            <img 
+              :src="`https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=400&sig=${product.sku}`" 
+              class="w-full h-full object-cover mix-blend-multiply opacity-90 group-hover:scale-110 transition-transform duration-500"
+              alt="Product Image"
+            />
           </div>
 
           <h3 class="text-lg font-bold text-slate-900 mb-1 group-hover:text-primary transition-colors line-clamp-1">{{ product.name }}</h3>

@@ -15,7 +15,6 @@ const search = ref('');
 const showModal = ref(false);
 const editingProduct = ref(null);
 const loadingAction = ref(false);
-const feedback = ref(null);
 
 const form = ref({
   name: '',
@@ -52,22 +51,25 @@ const handleSubmit = async () => {
   if (result.success) {
     showModal.value = false;
     fetchProducts();
-    feedback.value = { type: 'success', message: `Producto ${editingProduct.value ? 'actualizado' : 'creado'} correctamente` };
+    // Limpiar formulario
+    form.value = { name: '', sku: '', price: 0, status: 'ACTIVE' };
+    // Notificación Global
+    prefs.showToast(`Producto ${editingProduct.value ? 'actualizado' : 'creado'} correctamente`, 'success');
   } else {
-    feedback.value = { type: 'error', message: result.message };
+    prefs.showToast(result.message, 'error');
   }
   loadingAction.value = false;
 };
 
 const confirmDelete = async (id) => {
-  if (confirm('¿Desea eliminar permanentemente este producto del catálogo?')) {
+  if (confirm('¿Desea eliminar permanentemente este producto?')) {
     loadingAction.value = true;
     const result = await productStore.deleteProduct(id);
     if (result.success) {
       fetchProducts();
-      feedback.value = { type: 'success', message: 'Producto eliminado del catálogo' };
+      prefs.showToast('Producto eliminado del catálogo', 'success');
     } else {
-      feedback.value = { type: 'error', message: result.message };
+      prefs.showToast(result.message, 'error');
     }
     loadingAction.value = false;
   }
@@ -88,19 +90,6 @@ const confirmDelete = async (id) => {
       >
         <Plus :size="16" /> Añadir Producto
       </button>
-    </div>
-
-    <!-- Feedback -->
-    <div v-if="feedback" class="animate-in slide-in-from-top-2">
-      <div 
-        class="p-3 rounded border flex items-center gap-3"
-        :class="feedback.type === 'success' ? 'bg-[#E6FCF5] border-[#00ED64]/30 text-[#00684A]' : 'bg-rose-50 border-rose-100 text-rose-700'"
-      >
-        <CheckCircle v-if="feedback.type === 'success'" :size="18" />
-        <AlertCircle v-else :size="18" />
-        <p class="text-[13px] font-bold">{{ feedback.message }}</p>
-        <button @click="feedback = null" class="ml-auto opacity-40 hover:opacity-100"><X :size="14" /></button>
-      </div>
     </div>
 
     <!-- Toolbar -->
@@ -127,7 +116,7 @@ const confirmDelete = async (id) => {
           <thead>
             <tr class="bg-slate-50/50 border-b border-border text-[10px] font-black uppercase tracking-widest text-slate-500">
               <th class="px-6 py-4 text-left">Detalles del Producto</th>
-              <th class="px-6 py-4 text-left">Estado del Catálogo</th>
+              <th class="px-6 py-4 text-left">Estado</th>
               <th class="px-6 py-4 text-left">Precio Unitario</th>
               <th class="px-6 py-4 text-right">Acciones</th>
             </tr>
@@ -136,12 +125,16 @@ const confirmDelete = async (id) => {
             <tr v-for="product in productStore.products" :key="product.id" class="hover:bg-slate-50/30 transition-colors group">
               <td class="px-6 py-4">
                 <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 border border-slate-200 group-hover:text-primary group-hover:border-primary/30 transition-all">
-                    <Package :size="16" />
+                  <div class="w-10 h-10 rounded bg-slate-100 overflow-hidden border border-slate-200 group-hover:border-primary/30 transition-all shrink-0">
+                    <img 
+                      :src="`https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=100&sig=${product.sku}`" 
+                      class="w-full h-full object-cover opacity-80"
+                      alt="Thumb"
+                    />
                   </div>
                   <div>
                     <p class="text-[13px] font-bold text-secondary">{{ product.name }}</p>
-                    <p class="text-[10px] font-mono text-slate-400">SKU: {{ product.sku }}</p>
+                    <p class="text-[10px] font-bold text-slate-400">SKU: {{ product.sku }}</p>
                   </div>
                 </div>
               </td>
@@ -157,11 +150,12 @@ const confirmDelete = async (id) => {
                 <p class="text-[13px] font-bold text-secondary">{{ prefs.formatPrice(product.price) }}</p>
               </td>
               <td class="px-6 py-4 text-right">
-                <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button @click="openEdit(product)" class="p-1.5 text-slate-400 hover:text-secondary hover:bg-slate-100 rounded" title="Editar Producto">
+                <div class="flex items-center justify-end gap-1">
+                  <!-- Iconos siempre visibles pero con color suave -->
+                  <button @click="openEdit(product)" class="p-1.5 text-slate-300 hover:text-secondary hover:bg-slate-100 rounded transition-all" title="Editar Producto">
                     <Edit2 :size="16" />
                   </button>
-                  <button @click="confirmDelete(product.id)" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded" title="Eliminar Producto">
+                  <button @click="confirmDelete(product.id)" class="p-1.5 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded transition-all" title="Eliminar Producto">
                     <Trash2 :size="16" />
                   </button>
                 </div>
@@ -172,7 +166,7 @@ const confirmDelete = async (id) => {
       </div>
     </StatusHandler>
 
-    <!-- Modal (MongoDB Atlas Style) -->
+    <!-- Modal -->
     <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div class="absolute inset-0 bg-secondary/80 backdrop-blur-sm" @click="showModal = false"></div>
       <div class="bg-white w-full max-w-md rounded shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200">
@@ -183,36 +177,36 @@ const confirmDelete = async (id) => {
         
         <form @submit.prevent="handleSubmit" class="p-6 space-y-5">
           <div class="space-y-1.5">
-            <label class="text-[12px] font-bold text-slate-700">Nombre Comercial</label>
-            <input v-model="form.name" type="text" required class="w-full bg-slate-50 border border-border rounded py-2 px-3 text-[13px] outline-none focus:border-accent transition-all" />
+            <label class="text-[10px] font-bold text-slate-700 uppercase tracking-widest">Nombre Comercial</label>
+            <input v-model="form.name" type="text" required class="w-full bg-slate-50 border border-border rounded py-2 px-3 text-[12px] outline-none focus:border-accent transition-all" />
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div class="space-y-1.5">
-              <label class="text-[12px] font-bold text-slate-700">SKU</label>
-              <input v-model="form.sku" type="text" required class="w-full bg-slate-50 border border-border rounded py-2 px-3 text-[13px] outline-none focus:border-accent transition-all" />
+              <label class="text-[10px] font-bold text-slate-700 uppercase tracking-widest">SKU</label>
+              <input v-model="form.sku" type="text" required class="w-full bg-slate-50 border border-border rounded py-2 px-3 text-[12px] outline-none focus:border-accent transition-all" />
             </div>
             <div class="space-y-1.5">
-              <label class="text-[12px] font-bold text-slate-700">Precio (USD)</label>
-              <input v-model="form.price" type="number" step="0.01" required class="w-full bg-slate-50 border border-border rounded py-2 px-3 text-[13px] outline-none focus:border-accent transition-all" />
+              <label class="text-[10px] font-bold text-slate-700 uppercase tracking-widest">Precio (USD)</label>
+              <input v-model="form.price" type="number" step="0.01" required class="w-full bg-slate-50 border border-border rounded py-2 px-3 text-[12px] outline-none focus:border-accent transition-all" />
             </div>
           </div>
 
           <div class="space-y-1.5">
-            <label class="text-[12px] font-bold text-slate-700">Estado en Catálogo</label>
-            <select v-model="form.status" class="w-full bg-slate-50 border border-border rounded py-2 px-3 text-[13px] outline-none focus:border-accent transition-all appearance-none">
+            <label class="text-[10px] font-bold text-slate-700 uppercase tracking-widest">Estado en Catálogo</label>
+            <select v-model="form.status" class="w-full bg-slate-50 border border-border rounded py-2 px-3 text-[12px] outline-none focus:border-accent transition-all appearance-none">
               <option value="ACTIVE">Activo y Visible</option>
               <option value="INACTIVE">Inactivo (Oculto)</option>
             </select>
           </div>
 
           <div class="flex gap-3 pt-4">
-            <button type="button" @click="showModal = false" class="flex-1 px-4 py-2 text-[13px] font-bold text-slate-600 hover:bg-slate-50 transition-all border border-border rounded">
+            <button type="button" @click="showModal = false" class="flex-1 px-4 py-2 text-[11px] font-bold text-slate-600 hover:bg-slate-50 transition-all border border-border rounded uppercase">
               Cancelar
             </button>
-            <button type="submit" :disabled="loadingAction" class="flex-1 px-4 py-2 bg-secondary text-white text-[13px] font-bold rounded hover:bg-black flex items-center justify-center gap-2">
+            <button type="submit" :disabled="loadingAction" class="flex-1 px-4 py-2 bg-secondary text-white text-[11px] font-bold rounded hover:bg-black flex items-center justify-center gap-2 uppercase">
               <Loader2 v-if="loadingAction" class="animate-spin" :size="16" />
-              <span>{{ editingProduct ? 'Actualizar Producto' : 'Crear Producto' }}</span>
+              <span>{{ editingProduct ? 'Actualizar' : 'Guardar' }}</span>
             </button>
           </div>
         </form>
