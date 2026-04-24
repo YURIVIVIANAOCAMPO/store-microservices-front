@@ -39,20 +39,30 @@ Interfaz de administración de activos desarrollada para StoreMaster Enterprise.
     ```
     La aplicación estará disponible en `http://localhost:5173`.
 
+## Pruebas y Calidad del Frontend
+Para garantizar el cumplimiento de los estándares de calidad exigidos, se han implementado las siguientes suites de pruebas:
+
+### Pruebas Unitarias (Vitest)
+*   **Módulos Evaluados:** Gestión de estado global con Pinia (autenticación y productos) y lógica de componentes críticos.
+*   **Comando de ejecución:** `npm run test:unit`
+
+### Pruebas de Extremo a Extremo (Playwright)
+Se han automatizado los flujos de usuario más críticos:
+*   **Flujo Principal:** Listado de productos -> Navegación al detalle -> Ejecución de compra exitosa.
+*   **Gestión de Errores:** Validación de la respuesta del sistema ante stock insuficiente o fallo en la comunicación con el microservicio de inventario.
+*   **Comando de ejecución:** `npm run test:e2e`
+
 ## Despliegue en Entornos de Producción (Vercel)
+La plataforma Vercel ha sido seleccionada basándose en su capacidad de entrega mediante CDN y su integración nativa con flujos de CI/CD.
 
-La plataforma Vercel ha sido seleccionada como host para el frontend por las siguientes razones técnicas:
-*   **Optimización de Entrega:** Utilización de redes de entrega de contenido (CDN) globales para minimizar tiempos de respuesta.
-*   **Escalabilidad:** Infraestructura preparada para el manejo de tráfico variable sin intervención manual.
-*   **Integración Continua:** Flujos de despliegue automatizados para garantizar la integridad del código en producción.
-
-### Configuración de Variables en Producción
-Es imperativo configurar las siguientes variables en el panel de control del host:
-*   `VITE_PRODUCTS_URL`: Endpoint oficial del servicio de productos.
-*   `VITE_INVENTORY_URL`: Endpoint oficial del servicio de inventario.
+### Configuración de Variables
+Es imperativo definir las siguientes variables de entorno en el panel de Vercel:
+*   `VITE_PRODUCTS_URL`: Endpoint de producción del servicio de productos.
+*   `VITE_INVENTORY_URL`: Endpoint de producción del servicio de inventario.
 
 ## Justificación de Infraestructura
-La arquitectura del sistema aprovecha las capacidades de las capas gratuitas de Render (Backend y Base de Datos) y Vercel (Frontend). Esta estrategia permite la validación de la arquitectura de microservicios y la entrega de un Producto Mínimo Viable (MVP) con alta fidelidad técnica y costo operativo nulo.
+La arquitectura aprovecha las capas gratuitas de Render y Vercel para demostrar la viabilidad de una solución de microservicios distribuida con costo operativo cero.
 
 ---
 *StoreMaster Enterprise - Documentación Técnica Oficial.*
+
