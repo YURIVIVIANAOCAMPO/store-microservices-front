@@ -46,19 +46,27 @@ export const useProductStore = defineStore('products', {
     },
 
     async fetchStock(productId) {
+      // El stock ya viene en la lista de productos (/products).
+      // Solo llamamos a este metodo si necesitamos refrescar un producto individual.
       try {
-        const res = await inventoryApi.get(`/inventory/${productId}`);
-        this.inventory[productId] = res.data.data.quantity;
+        const res = await api.get(`/products/${productId}`);
+        const product = res.data.data;
+        this.inventory[productId] = product.stock ?? 0;
+        
+        // Tambien actualizamos el producto en la lista si existe
+        const index = this.products.findIndex(p => p.id === productId);
+        if (index !== -1) {
+          this.products[index].stock = product.stock;
+        }
       } catch (err) {
-        this.inventory[productId] = 0;
+        console.error("Error fetching individual stock", err);
       }
     },
 
     async purchaseProduct(productId, quantity) {
       this.loading = true;
       try {
-        await inventoryApi.post('/inventory/purchases', { 
-          productId, 
+        await api.post(`/products/${productId}/purchase`, { 
           quantity 
         }, {
           headers: { 'Idempotency-Key': `buy-${productId}-${Date.now()}` }
@@ -74,11 +82,31 @@ export const useProductStore = defineStore('products', {
       }
     },
 
+    async syncStock(productId, stock) {
+      this.loading = true;
+      try {
+        await api.put(`/products/${productId}/stock`, null, {
+          params: { quantity: stock }
+        });
+        this.cache.timestamp = null; // Invalidate cache
+        await this.fetchStock(productId);
+        return { success: true };
+      } catch (err) {
+        return { success: false, message: err.friendlyMessage };
+      } finally {
+        this.loading = false;
+      }
+    },
+
     // CRUD Actions
     async createProduct(productData) {
       this.loading = true;
       try {
-        await api.post('/products', productData);
+        const res = await api.post('/products', productData);
+        const newProduct = res.data.data;
+        if (productData.initialStock > 0) {
+          await this.syncStock(newProduct.id, productData.initialStock);
+        }
         this.cache.timestamp = null; // Invalidate cache
         return { success: true };
       } catch (err) {
