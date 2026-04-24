@@ -11,10 +11,10 @@ Se implementaron pruebas para el store de Pinia (`products.js`) cubriendo:
 > npm run test:unit
 
  RUN  v1.6.1 C:/proyectos/store-microservices-front
- ✓ src/stores/products.test.js (3 tests)
-   ✓ Products Store > fetches products and updates state
-   ✓ Products Store > uses cache when available and not expired
-   ✓ Products Store > handles purchase errors with friendly messages
+ [PASS] src/stores/products.test.js (3 tests)
+   [PASS] Products Store > fetches products and updates state
+   [PASS] Products Store > uses cache when available and not expired
+   [PASS] Products Store > handles purchase errors with friendly messages
 
  Test Files  1 passed (1)
       Tests  3 passed (3)
