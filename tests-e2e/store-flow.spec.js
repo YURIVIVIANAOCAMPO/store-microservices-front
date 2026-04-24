@@ -1,27 +1,33 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Store Flow', () => {
-  test('should login and navigate through products', async ({ page }) => {
-    // Note: This requires the app and backend to be running
-    await page.goto('http://localhost:5173/login');
+test.describe('StoreMaster Flow', () => {
+  test('should login and navigate to catalog', async ({ page }) => {
+    await page.goto('/login');
     
+    // Fill login
     await page.fill('input[type="text"]', 'admin');
-    await page.fill('input[type="password"]', 'password');
+    await page.fill('input[type="password"]', 'admin');
     await page.click('button[type="submit"]');
 
-    await expect(page).toHaveURL('http://localhost:5173/');
-    await expect(page.locator('h1')).toContainText('Product Catalog');
+    // Wait for redirect to home
+    await expect(page).toHaveURL('/');
+    await expect(page.locator('h1')).toContainText('Catálogo de Productos');
+  });
 
-    // Go to detail
-    await page.click('.glass-card a');
-    await expect(page.locator('h1')).toBeVisible();
-
-    // Purchase
-    await page.fill('input[type="number"]', '1');
-    await page.click('button:has-text("Confirm Purchase")');
+  test('should view product detail and attempt purchase', async ({ page }) => {
+    await page.goto('/');
     
-    // Check feedback
-    const feedback = page.locator('.p-4.rounded-xl');
-    await expect(feedback).toBeVisible();
+    // Select first product
+    await page.locator('.group').first().click();
+    
+    // Verify detail page
+    await expect(page.locator('h2')).toBeVisible();
+    await expect(page.locator('button:has-text("Comprar Ahora")')).toBeVisible();
+
+    // Perform purchase (assuming inventory is up)
+    await page.click('button:has-text("Comprar Ahora")');
+    
+    // Success feedback (Toast)
+    await expect(page.locator('.fixed.bottom-10')).toBeVisible();
   });
 });
