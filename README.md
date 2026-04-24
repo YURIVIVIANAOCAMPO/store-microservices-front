@@ -63,6 +63,14 @@ Es imperativo definir las siguientes variables de entorno en el panel de Vercel:
 ## Justificación de Infraestructura
 La arquitectura aprovecha las capas gratuitas de Render y Vercel para demostrar la viabilidad de una solución de microservicios distribuida con costo operativo cero.
 
+## Documentación Técnica
+Para una comprensión profunda de las decisiones de diseño y el cumplimiento de los requisitos, consulte:
+*   [Decisiones Técnicas (Concurrencia, Resiliencia e Idempotencia)](./docs/technical_decisions.md)
+*   [Arquitectura del Sistema (Diagrama C4)](./docs/Architecture.md)
+*   [Evidencia de Ejecución de Pruebas](./docs/Testing_Evidence.md)
+
 ---
 *StoreMaster Enterprise - Documentación Técnica Oficial.*
+
+
 
