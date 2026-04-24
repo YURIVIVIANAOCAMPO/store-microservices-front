@@ -2,7 +2,7 @@
 
 Technical test implementation using Vue 3, Vite, Pinia, and Tailwind CSS.
 
-## 🚀 Technical Requirements Fulfilled
+## Technical Requirements Fulfilled
 - **Vue 3 + Vite**
 - **Router + Pinia**
 - **States**: loading, empty, error, success handled globally.
@@ -11,7 +11,7 @@ Technical test implementation using Vue 3, Vite, Pinia, and Tailwind CSS.
 - **Caching**: Pinia caching with expiration (5 mins).
 - **Testing**: Vitest (Unit) and Playwright (E2E).
 
-## 🛠️ Getting Started
+## Getting Started
 
 ### Prerequisites
 - Node.js v20+
@@ -36,13 +36,13 @@ npm run test:unit
 npx playwright test
 ```
 
-## 🐳 Docker Deployment
+## Docker Deployment
 The frontend can be containerized using the provided Dockerfile (to be created).
 
 ### Environment Variables
 - `VITE_API_URL`: Base URL for the backend API (Default: http://localhost:8080)
 
-## 📁 Documentation
+## Documentation
 See the `docs/` directory for:
 - [Architecture Diagram (C4)](docs/architecture.md)
 - [Technical Decisions](docs/technical_decisions.md)
