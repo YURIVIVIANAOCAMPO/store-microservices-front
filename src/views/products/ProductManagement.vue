@@ -124,12 +124,12 @@ const handleDelete = async () => {
 <template>
   <div class="space-y-8 animate-in fade-in duration-500">
     <!-- Header -->
-    <div class="flex items-center justify-between pb-8 border-b border-[#E8EDEB]">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-8 border-b border-[#E8EDEB]">
       <div>
         <h1 class="text-3xl font-black text-[#001E2B] tracking-tighter">Control de Activos</h1>
         <p class="text-sm text-slate-500 font-medium">Sincronización maestra entre el catálogo y el almacén físico.</p>
       </div>
-      <button @click="openCreate" class="px-6 py-3 bg-[#00ED64] text-[#001E2B] rounded-lg font-black text-[11px] uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-[#00ED64]/20 hover:scale-[1.02] transition-all">
+      <button @click="openCreate" class="w-full sm:w-auto px-6 py-3 bg-[#00ED64] text-[#001E2B] rounded-lg font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-[#00ED64]/20 hover:scale-[1.02] transition-all">
         <Plus :size="18" /> Registrar Producto
       </button>
     </div>
@@ -142,9 +142,56 @@ const handleDelete = async () => {
       </div>
     </div>
 
-    <!-- Table -->
+    <!-- Table / Responsive List -->
     <StatusHandler :loading="productStore.loading" :empty="productStore.products.length === 0">
-      <div class="bg-white border border-[#E8EDEB] rounded-xl shadow-sm overflow-hidden">
+      <!-- Mobile View (Cards) -->
+      <div class="grid grid-cols-1 gap-4 lg:hidden">
+        <div v-for="product in productStore.products" :key="product.id" class="bg-white border border-[#E8EDEB] rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 border border-[#E8EDEB]">
+                <Package :size="20" />
+              </div>
+              <div>
+                <p class="text-sm font-black text-[#001E2B] leading-tight">{{ product.name }}</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{{ product.sku }}</p>
+              </div>
+            </div>
+            <span class="px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest border" :class="product.status === 'ACTIVE' ? 'bg-[#E6FCF5] text-[#00684A] border-[#00ED64]/30' : 'bg-slate-50 text-slate-400 border-slate-200'">
+              {{ product.status }}
+            </span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4 py-4 border-t border-slate-50">
+            <div>
+              <p class="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1">MSRP</p>
+              <p class="text-sm font-black text-secondary">{{ prefs.formatPrice(product.price) }}</p>
+            </div>
+            <div>
+              <p class="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1">Inventario</p>
+              <button 
+                @click="openStockAdjustment(product)"
+                class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-100 hover:border-[#00ED64]/30 transition-all"
+              >
+                <div class="w-1.5 h-1.5 rounded-full" :class="(productStore.inventory[product.id] || 0) > 10 ? 'bg-[#00ED64]' : 'bg-rose-500'"></div>
+                <span class="text-xs font-black">{{ productStore.inventory[product.id] ?? 0 }}</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-50">
+            <button @click="openEdit(product)" class="flex-1 py-2.5 bg-slate-50 text-secondary rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all flex items-center justify-center gap-2">
+              <Edit2 :size="14" /> Editar
+            </button>
+            <button @click="confirmDelete(product)" class="p-2.5 text-rose-500 hover:bg-rose-50 rounded-xl transition-all">
+              <Trash2 :size="16" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Desktop View (Table) -->
+      <div class="hidden lg:block bg-white border border-[#E8EDEB] rounded-xl shadow-sm overflow-hidden">
         <table class="w-full text-left">
           <thead>
             <tr class="bg-slate-50/50 border-b border-[#E8EDEB] text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">

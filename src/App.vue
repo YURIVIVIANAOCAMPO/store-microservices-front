@@ -68,7 +68,7 @@ const currencies = ['USD', 'COP', 'MXN'];
       <!-- Mobile Backdrop -->
       <div v-if="isMobileMenuOpen" @click="closeMobileMenu" class="absolute inset-0 bg-black/60 backdrop-blur-sm lg:hidden"></div>
       
-      <div class="relative h-full bg-[#001E2B] flex flex-col border-r border-white/5 shadow-2xl lg:shadow-none min-h-screen">
+      <div class="relative h-full bg-[#001E2B] flex flex-col border-r border-white/5 shadow-2xl lg:shadow-none">
         <!-- Toggle Button (Desktop) -->
         <button 
           @click="prefs.toggleSidebar"
@@ -79,19 +79,25 @@ const currencies = ['USD', 'COP', 'MXN'];
         </button>
 
         <!-- Sidebar Brand -->
-        <div class="px-6 py-8 flex items-center gap-3 shrink-0">
-          <div class="w-8 h-8 bg-[#00ED64] rounded flex items-center justify-center text-[#001E2B] shadow-[0_0_15px_rgba(0,237,100,0.3)] shrink-0">
-            <Store :size="20" />
+        <div class="px-6 py-8 flex items-center justify-between shrink-0">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-[#00ED64] rounded flex items-center justify-center text-[#001E2B] shadow-[0_0_15px_rgba(0,237,100,0.3)] shrink-0">
+              <Store :size="20" />
+            </div>
+            <div v-if="!prefs.isSidebarCollapsed || isMobileMenuOpen" class="overflow-hidden whitespace-nowrap animate-in fade-in slide-in-from-left-2">
+              <span class="text-lg font-bold text-white tracking-tight leading-none block">StoreMaster</span>
+              <span class="text-[9px] text-[#00ED64] font-black uppercase tracking-widest">Enterprise Retail</span>
+            </div>
           </div>
-          <div v-if="!prefs.isSidebarCollapsed" class="overflow-hidden whitespace-nowrap animate-in fade-in slide-in-from-left-2">
-            <span class="text-lg font-bold text-white tracking-tight leading-none block">StoreMaster</span>
-            <span class="text-[9px] text-[#00ED64] font-black uppercase tracking-widest">Enterprise Retail</span>
-          </div>
+          <!-- Close Button Mobile -->
+          <button @click="closeMobileMenu" class="lg:hidden p-2 text-white/40 hover:text-white transition-colors">
+            <X :size="20" />
+          </button>
         </div>
 
         <!-- Navigation Section -->
-        <div class="px-3 py-2 flex-1">
-          <p v-if="!prefs.isSidebarCollapsed" class="px-3 py-2 text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-2 whitespace-nowrap">Operaciones</p>
+        <div class="px-3 py-2 flex-1 overflow-y-auto">
+          <p v-if="!prefs.isSidebarCollapsed || isMobileMenuOpen" class="px-3 py-2 text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-2 whitespace-nowrap">Operaciones</p>
           <nav class="space-y-1">
             <router-link 
               v-for="item in navItems" 
@@ -103,19 +109,30 @@ const currencies = ['USD', 'COP', 'MXN'];
             >
               <div v-if="route.path === item.path" class="absolute left-0 top-0 bottom-0 w-[3px] bg-[#00ED64] rounded-r"></div>
               <component :is="item.icon" :size="20" :class="route.path === item.path ? 'text-[#00ED64]' : 'text-white/40 group-hover:text-white/60'" class="shrink-0" />
-              <span v-if="!prefs.isSidebarCollapsed" class="text-[13px] font-medium whitespace-nowrap">{{ item.name }}</span>
+              <span v-if="!prefs.isSidebarCollapsed || isMobileMenuOpen" class="text-[13px] font-medium whitespace-nowrap">{{ item.name }}</span>
             </router-link>
           </nav>
         </div>
 
-        <!-- Footer / Disconnect -->
-        <div class="shrink-0 border-t border-white/5 bg-black/20 p-4">
+        <!-- Footer / Identity -->
+        <div class="shrink-0 border-t border-white/5 bg-black/20 p-4 space-y-4">
+          <!-- Mobile Profile Section -->
+          <div class="lg:hidden flex items-center gap-3 px-3 py-2 bg-white/5 rounded-xl border border-white/5">
+             <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[#00ED64]">
+                <UserIcon :size="20" />
+             </div>
+             <div>
+                <p class="text-xs font-bold text-white leading-none mb-1">{{ auth.user?.username }}</p>
+                <p class="text-[9px] text-[#00ED64] font-black uppercase tracking-widest">{{ auth.user?.role.replace('ROLE_', '') }}</p>
+             </div>
+          </div>
+
           <button 
             @click="handleLogout"
             class="w-full flex items-center gap-3 px-3 py-2 rounded text-xs font-bold text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors"
           >
             <LogOut :size="16" class="shrink-0" /> 
-            <span v-if="!prefs.isSidebarCollapsed">Salir del Sistema</span>
+            <span v-if="!prefs.isSidebarCollapsed || isMobileMenuOpen">Salir del Sistema</span>
           </button>
         </div>
       </div>
@@ -123,8 +140,8 @@ const currencies = ['USD', 'COP', 'MXN'];
 
     <!-- Main Content Area -->
     <main class="flex-1 flex flex-col min-h-screen">
-      <!-- Header -->
-      <header class="h-16 bg-white border-b border-[#E8EDEB] flex items-center justify-between px-8 shrink-0 z-30 sticky top-0">
+      <!-- Desktop Header (Hidden on Mobile) -->
+      <header class="hidden lg:flex h-16 bg-white border-b border-[#E8EDEB] items-center justify-between px-8 shrink-0 z-30 sticky top-0">
         <!-- Left Side: Breadcrumb -->
         <div class="flex items-center gap-2 text-[12px] font-medium text-slate-500">
           <span class="hover:text-secondary cursor-pointer">Admin</span>
@@ -168,7 +185,7 @@ const currencies = ['USD', 'COP', 'MXN'];
       </header>
 
       <!-- Dashboard Viewport -->
-      <div class="flex-1 px-8 py-8">
+      <div class="flex-1 px-4 sm:px-8 py-6 sm:py-8">
         <router-view v-slot="{ Component }">
           <transition name="fade" mode="out-in">
             <component :is="Component" />

@@ -91,22 +91,22 @@ const handleResetPassword = async (user) => {
 <template>
   <div class="space-y-6 animate-in fade-in duration-300">
     <!-- Header -->
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-border/60">
       <div>
         <h1 class="text-2xl font-bold text-secondary tracking-tight">Equipo y Colaboradores</h1>
         <p class="text-[13px] text-slate-500 mt-1">Gestione los accesos del personal, roles y políticas de seguridad.</p>
       </div>
       <button 
         @click="openCreate"
-        class="bg-primary hover:bg-primary-hover text-secondary px-5 py-2.5 rounded font-bold text-[13px] flex items-center gap-2 shadow-sm transition-all active:scale-95"
+        class="w-full sm:w-auto bg-primary hover:bg-primary-hover text-secondary px-6 py-3 rounded font-bold text-[13px] flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95"
       >
         <Plus :size="16" /> Añadir Colaborador
       </button>
     </div>
 
     <!-- Toolbar -->
-    <div class="bg-white border border-border rounded shadow-sm flex items-center px-4 py-3 gap-4">
-      <div class="relative flex-1 max-w-md">
+    <div class="bg-white border border-border rounded-xl shadow-sm flex flex-col sm:flex-row items-center px-4 py-3 gap-4">
+      <div class="relative w-full flex-1 max-w-md">
         <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" :size="16" />
         <input 
           type="text" 
@@ -114,14 +114,51 @@ const handleResetPassword = async (user) => {
           class="w-full bg-slate-50 border border-slate-200 rounded py-2 pl-10 pr-4 text-[13px] focus:bg-white focus:border-accent outline-none transition-all"
         />
       </div>
-      <button class="flex items-center gap-2 text-[13px] font-bold text-slate-600 hover:text-secondary px-3 py-2">
+      <button class="w-full sm:w-auto flex items-center justify-center gap-2 text-[13px] font-bold text-slate-600 hover:text-secondary px-3 py-2 border border-transparent sm:border-none">
         <Filter :size="14" /> Filtros
       </button>
     </div>
 
-    <!-- Table -->
+    <!-- Table / Mobile Cards -->
     <StatusHandler :loading="userStore.loading" :empty="userStore.users.length === 0">
-      <div class="bg-white border border-border rounded shadow-sm overflow-hidden">
+      <!-- Mobile View -->
+      <div class="grid grid-cols-1 gap-4 md:hidden">
+        <div v-for="user in userStore.users" :key="user.id" class="bg-white border border-border rounded-xl p-5 shadow-sm">
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
+                <User :size="18" />
+              </div>
+              <div>
+                <p class="text-sm font-bold text-secondary">{{ user.username }}</p>
+                <p class="text-[10px] text-slate-400">ID: {{ user.id.split('-')[0] }}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5 px-2 py-1 bg-slate-50 rounded border border-slate-100">
+              <Shield :size="12" class="text-slate-400" />
+              <span class="text-[10px] font-bold text-slate-600">{{ user.role.replace('ROLE_', '') }}</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-4 border-t border-slate-50">
+            <span class="text-[10px] text-slate-400">Alta: {{ new Date().toLocaleDateString() }}</span>
+            <div class="flex items-center gap-2">
+              <button @click="handleResetPassword(user)" class="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg border border-transparent hover:border-primary/20 transition-all">
+                <Key :size="16" />
+              </button>
+              <button @click="openEdit(user)" class="p-2 text-slate-400 hover:text-secondary hover:bg-slate-50 rounded-lg border border-transparent hover:border-slate-200 transition-all">
+                <Edit2 :size="16" />
+              </button>
+              <button @click="confirmDelete(user.id)" class="p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all">
+                <Trash2 :size="16" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Desktop View -->
+      <div class="hidden md:block bg-white border border-border rounded shadow-sm overflow-hidden">
         <table class="w-full text-left border-collapse">
           <thead>
             <tr class="bg-slate-50/50 border-b border-border text-[10px] font-black uppercase tracking-widest text-slate-500">
