@@ -1,46 +1,24 @@
-# Architecture & Technical Decisions
+# Decisiones Técnicas
 
-## 🏗️ Architecture (C4 Level 2)
+## 1. Gestión de Concurrencia (Backend/Frontend)
+- **Desafío**: Múltiples usuarios comprando el mismo producto simultáneamente.
+- **Solución**: El Inventory Service utiliza **Bloqueo Optimista** (`@Version` en JPA) para asegurar que una transacción solo se complete si el stock no ha cambiado desde que se leyó.
+- **Frontend**: El estado `stock` se refresca inmediatamente después de cada compra para mantener la UI sincronizada.
 
-```mermaid
-graph TD
-    User((User))
-    subgraph "Frontend System"
-        Vue[Vue 3 Components]
-        Pinia[Pinia Stores]
-        Router[Vue Router]
-        Axios[Axios Client with Interceptors]
-    end
-    subgraph "Backend System"
-        AuthS[Auth Service]
-        ProdS[Product Service]
-        InvS[Inventory Service]
-    end
+## 2. Idempotencia
+- **Desafío**: Reintentos de red que resultan en cobros o descuentos de stock duplicados.
+- **Solución**: Se implementó un header `Idempotency-Key` en las peticiones de compra. El Inventory Service valida esta llave antes de procesar la transacción.
+- **Frontend**: Se genera una llave única (uuid/timestamp) para cada intento de compra.
 
-    User --> Router
-    Router --> Vue
-    Vue --> Pinia
-    Pinia --> Axios
-    Axios --> AuthS
-    Axios --> ProdS
-    Axios --> InvS
-```
+## 3. Resiliencia (Plus Senior)
+- **Retry Logic**: Se implementó un interceptor en Axios que detecta fallos de comunicación (timeouts, errores 5xx temporales) y reintenta la petición hasta 3 veces con un backoff simple.
+- **Circuit Breaker (Implícito)**: El frontend maneja estados de error claros si los reintentos fallan, permitiendo al usuario reintentar manualmente.
 
-## 🧠 Technical Decisions
+## 4. Estrategia de Caching
+- **Implementación**: Pinia store con lógica de expiración.
+- **Lógica**: Los productos se guardan en memoria con un timestamp. Si la petición ocurre dentro de los 5 minutos siguientes, se sirve desde el cache a menos que el usuario fuerce un refresco (Pull-to-refresh).
+- **Invalidación**: El cache se invalida automáticamente tras una compra exitosa para asegurar que los datos de stock y precio sean precisos.
 
-### 1. State Management (Pinia)
-- **Why**: Standard for Vue 3, lightweight, and supports modular stores.
-- **Implementation**: Used for Auth (token persistence) and Products (global catalog).
-- **Caching**: Implemented a timestamp-based cache in the product store to reduce redundant API calls.
-
-### 2. Resilience & Idempotency
-- **Retry Logic**: Axios interceptors handle temporary network failures by retrying up to 3 times with a delay.
-- **Error Handling**: Specific status codes (409/422) are mapped to user-friendly messages to provide clear feedback on stock issues or validation errors.
-
-### 3. Styling (Tailwind CSS)
-- **Why**: Allows for rapid, consistent UI development without leaving the HTML.
-- **Glassmorphism**: Custom utility classes created for a premium SaaS feel.
-
-### 4. Testing Strategy
-- **Vitest**: Fast, Vite-native unit testing for business logic (stores).
-- **Playwright**: Reliable E2E testing for critical user paths.
+## 5. Diseño de Interfaz
+- **Tailwind CSS**: Se eligió por su flexibilidad para crear una UI "SaaS-like" sin la sobrecarga de frameworks de componentes rígidos.
+- **Accesibilidad**: Se utilizaron estados de `loading`, `empty`, `error` y `success` para guiar al usuario en todo el flujo.

@@ -1,48 +1,65 @@
-# Store Microservices Frontend
+# Store Microservices Frontend (Vue 3)
 
-Technical test implementation using Vue 3, Vite, Pinia, and Tailwind CSS.
+Este proyecto es la interfaz gráfica de la plataforma Store Microservices, construida bajo estándares de ingeniería Senior. Utiliza un ecosistema de microservicios para gestionar productos, usuarios e inventarios.
 
-## Technical Requirements Fulfilled
-- **Vue 3 + Vite**
-- **Router + Pinia**
-- **States**: loading, empty, error, success handled globally.
-- **Error Handling**: Custom messages for 404, 409, 422, and timeouts.
-- **Retry Logic**: Automatic and manual retry for network errors.
-- **Caching**: Pinia caching with expiration (5 mins).
-- **Testing**: Vitest (Unit) and Playwright (E2E).
+##  Requisitos Técnicos Cumplidos
+- **Vue 3 + Vite**: Reactividad de alto rendimiento.
+- **Router + Pinia**: Gestión de estado con cache local y expiración.
+- **Tailwind CSS**: Diseño consistente con estética SaaS moderna.
+- **Resiliencia**: Reintentos automáticos y manuales en Axios.
+- **Consistencia**: Bloqueo optimista y llaves de idempotencia integradas.
 
-## Getting Started
+##  Configuración y Ejecución
 
-### Prerequisites
-- Node.js v20+
-- Backend running at `http://localhost:8080`
+### Requisitos
+- **Node.js** v20.16.0 o superior.
+- **Docker & Docker Compose**.
 
-### Installation
-```bash
-npm install
+### Variables de Entorno (`.env`)
+Crea un archivo `.env` en la raíz con:
+```env
+VITE_PRODUCTS_URL=http://localhost:8080
+VITE_INVENTORY_URL=http://localhost:8081
 ```
 
-### Running the App
+### Ejecución Local
 ```bash
+npm install
 npm run dev
 ```
 
-### Running Tests
+### Ejecución con Docker Compose
+Desde la raíz del ecosistema (donde está el archivo compose):
 ```bash
-# Unit Tests
-npm run test:unit
-
-# E2E Tests (Requires dev server running)
-npx playwright test
+docker-compose up --build
 ```
 
-## Docker Deployment
-The frontend can be containerized using the provided Dockerfile (to be created).
+---
 
-### Environment Variables
-- `VITE_API_URL`: Base URL for the backend API (Default: http://localhost:8080)
+##  Pruebas
+### Unitarias (Vitest)
+```bash
+npm run test:unit
+```
+*Prueban la lógica de caching en Pinia y el manejo de errores de API.*
 
-## Documentation
-See the `docs/` directory for:
-- [Architecture Diagram (C4)](docs/architecture.md)
-- [Technical Decisions](docs/technical_decisions.md)
+### E2E (Playwright)
+```bash
+npx playwright test
+```
+*Valida el flujo completo de Compra -> Stock insuficiente -> Éxito.*
+
+---
+
+##  Documentación del Proyecto
+Puedes encontrar detalles profundos en la carpeta `docs/`:
+1. [Arquitectura (C4 Model)](docs/Architecture.md)
+2. [Decisiones Técnicas (Concurrencia, Resiliencia)](docs/Technical_Decisions.md)
+3. [Evidencia de Pruebas](docs/Testing_Evidence.md)
+
+##  Postman
+Se ha incluido el archivo `Products.postman_collection.json` en la raíz para facilitar las pruebas de los endpoints de backend.
+
+---
+
+**Desarrollado con enfoque en Calidad, Escalabilidad y UX.**

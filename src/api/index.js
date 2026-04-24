@@ -1,10 +1,24 @@
 import axios from 'axios';
 
+// Base URLs
+const PRODUCTS_URL = import.meta.env.VITE_PRODUCTS_URL || 'http://localhost:8080';
+const INVENTORY_URL = import.meta.env.VITE_INVENTORY_URL || 'http://localhost:8081';
+
 const api = axios.create({
-  baseURL: 'http://localhost:8080',
+  baseURL: PRODUCTS_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
+  },
+});
+
+// Specific instance for Inventory if needed, or just use full URLs
+export const inventoryApi = axios.create({
+  baseURL: INVENTORY_URL,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+    'x-api-key': 'inventory-secret-key' // As seen in backend README
   },
 });
 
@@ -12,59 +26,60 @@ const api = axios.create({
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const { config, response } = error;
-    
-    // Manual Retry logic for communication errors (timeouts, network issues)
-    if (!response || error.code === 'ECONNABORTED') {
-      config._retryCount = config._retryCount || 0;
-      
-      if (config._retryCount < MAX_RETRIES) {
-        config._retryCount++;
-        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
-        return api(config);
-      }
+const setupInterceptors = (instance) => {
+  instance.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    if (token && instance === api) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
+    return config;
+  });
 
-    // Clear error messages for specific status codes
-    if (response) {
-      const status = response.status;
-      let message = 'An unexpected error occurred';
-
-      switch (status) {
-        case 401:
-          message = 'Session expired. Please login again.';
-          localStorage.removeItem('token');
-          // We don't redirect here to avoid circular dependencies with router
-          break;
-        case 404:
-          message = 'The requested resource was not found.';
-          break;
-        case 409:
-          message = response.data?.message || 'Conflict: Possible stock insufficiency.';
-          break;
-        case 422:
-          message = response.data?.message || 'Unprocessable Entity: Validation failed.';
-          break;
-      }
+  instance.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+      const { config, response } = error;
       
-      error.friendlyMessage = message;
-    } else {
-      error.friendlyMessage = 'Communication error: Please check your connection.';
-    }
+      // Retry logic
+      if (!response || error.code === 'ECONNABORTED') {
+        config._retryCount = config._retryCount || 0;
+        if (config._retryCount < MAX_RETRIES) {
+          config._retryCount++;
+          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+          return instance(config);
+        }
+      }
 
-    return Promise.reject(error);
-  }
-);
+      if (response) {
+        const status = response.status;
+        let message = response.data?.message || 'An unexpected error occurred';
+
+        switch (status) {
+          case 401:
+            message = 'Sesión expirada. Por favor inicie sesión.';
+            localStorage.removeItem('token');
+            break;
+          case 404:
+            message = 'Recurso no encontrado.';
+            break;
+          case 409:
+            message = response.data?.message || 'Conflicto: Stock insuficiente o duplicado.';
+            break;
+          case 422:
+            message = response.data?.message || 'Error de validación.';
+            break;
+        }
+        error.friendlyMessage = message;
+      } else {
+        error.friendlyMessage = 'Error de comunicación con el servidor. Reintentando...';
+      }
+
+      return Promise.reject(error);
+    }
+  );
+};
+
+setupInterceptors(api);
+setupInterceptors(inventoryApi);
 
 export default api;
