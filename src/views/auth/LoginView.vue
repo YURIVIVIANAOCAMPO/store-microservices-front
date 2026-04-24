@@ -1,122 +1,185 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/auth';
-import { Loader2, Mail, Lock, Eye, EyeOff, LayoutDashboard } from 'lucide-vue-next';
+import { usePreferencesStore } from '../../stores/preferences';
+import api from '../../api';
+import { 
+  Loader2, Mail, Lock, Eye, EyeOff, Store, 
+  ArrowRight, X, KeyRound, AlertCircle
+} from 'lucide-vue-next';
 
 const auth = useAuthStore();
+const prefs = usePreferencesStore();
 const router = useRouter();
 
-const username = ref('admin');
-const password = ref('admin');
+const credentials = reactive({ username: '', password: '' });
+const recovery = reactive({ username: '', newPassword: '' });
+
 const showPassword = ref(false);
 const loading = ref(false);
-const error = ref('');
+const recoveryLoading = ref(false);
+const showRecoveryModal = ref(false);
+const apiError = ref('');
+const recoveryFeedback = ref(null);
 
 const handleLogin = async () => {
+  if (!credentials.username || !credentials.password) {
+    apiError.value = 'Complete todos los campos';
+    return;
+  }
+
   loading.value = true;
-  error.value = '';
+  apiError.value = '';
   try {
-    const success = await auth.login(username.value, password.value);
+    const success = await auth.login(credentials.username, credentials.password);
     if (success) {
+      prefs.showToast(`¡Bienvenido, ${credentials.username}!`, 'success');
       router.push('/');
     } else {
-      error.value = 'Credenciales inválidas. Por favor intente de nuevo.';
+      apiError.value = 'Usuario o clave inválidos';
     }
   } catch (err) {
-    error.value = err.friendlyMessage || 'Ocurrió un error inesperado';
+    apiError.value = err.statusCode === 401 ? 'Credenciales incorrectas' : 'Error de conexión';
   } finally {
     loading.value = false;
   }
 };
+
+const handleRecovery = async () => {
+  recoveryLoading.value = true;
+  recoveryFeedback.value = null;
+  try {
+    const usersRes = await api.get('/users');
+    const user = usersRes.data.data.find(u => u.username === recovery.username);
+    if (!user) {
+      recoveryFeedback.value = { type: 'error', message: 'No se encontró el usuario' };
+      return;
+    }
+    await api.put(`/users/${user.id}/password`, { newPassword: recovery.newPassword });
+    recoveryFeedback.value = { type: 'success', message: 'Clave actualizada' };
+    setTimeout(() => { showRecoveryModal.value = false; }, 1500);
+  } catch (err) {
+    recoveryFeedback.value = { type: 'error', message: 'Error en restablecimiento' };
+  } finally {
+    recoveryLoading.value = false;
+  }
+};
+
+const isMounted = ref(false);
+onMounted(() => { isMounted.value = true; });
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-[#f0f2f5] p-6">
-    <div class="w-full max-w-[440px] animate-in fade-in zoom-in duration-500">
-      <!-- Logo/Brand Section -->
-      <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl shadow-xl shadow-primary/20 mb-4">
-          <LayoutDashboard class="text-white" :size="32" />
+  <div class="min-h-screen flex items-center justify-center bg-[#F9FBFA] p-4 sm:p-8 font-sans overflow-hidden">
+    <!-- Allegro Entrance -->
+    <transition name="allegro-in">
+      <div v-if="isMounted" class="w-full max-w-[380px] sm:max-w-[420px]">
+        
+        <!-- Branding -->
+        <div class="text-center mb-6 sm:mb-8">
+          <div class="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-primary rounded-[24px] shadow-2xl shadow-primary/30 mb-4 transition-transform hover:scale-105">
+            <Store class="text-secondary" :size="32" />
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-black text-secondary tracking-tighter mb-1">StoreMaster</h1>
+          <p class="text-slate-400 font-bold uppercase tracking-widest text-[9px] sm:text-[10px]">Administración Retail Premium</p>
         </div>
-        <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Bienvenido de nuevo</h1>
-        <p class="text-slate-500 mt-2">Gestione su inventario de manera eficiente</p>
-      </div>
 
-      <!-- Login Card -->
-      <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-white overflow-hidden">
-        <div class="p-8 md:p-10">
-          <form @submit.prevent="handleLogin" class="space-y-6">
-            <!-- Username Input -->
-            <div class="space-y-2">
-              <label class="text-sm font-semibold text-slate-700 ml-1">Usuario</label>
-              <div class="relative group">
-                <Mail class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" :size="20" />
+        <!-- Login Card -->
+        <div class="bg-white rounded-[28px] sm:rounded-[32px] shadow-2xl shadow-slate-200/50 border border-slate-100 p-8 sm:p-10">
+          <form @submit.prevent="handleLogin" class="space-y-5">
+            
+            <div class="space-y-1.5">
+              <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Usuario</label>
+              <div class="relative">
+                <Mail class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" :size="16" />
                 <input 
-                  v-model="username"
+                  v-model="credentials.username"
                   type="text" 
-                  required
-                  class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3.5 pl-12 pr-4 outline-none focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all text-slate-900"
-                  placeholder="Ingrese su usuario"
+                  class="w-full bg-slate-50 border border-slate-100 rounded-xl py-3.5 pl-11 pr-4 outline-none focus:bg-white focus:border-primary transition-all text-sm font-bold text-secondary"
+                  placeholder="admin"
                 />
               </div>
             </div>
 
-            <!-- Password Input -->
-            <div class="space-y-2">
+            <div class="space-y-1.5">
               <div class="flex items-center justify-between ml-1">
-                <label class="text-sm font-semibold text-slate-700">Contraseña</label>
-                <a href="#" class="text-xs font-bold text-primary hover:underline">¿Olvidó su contraseña?</a>
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Contraseña</label>
+                <button type="button" @click="showRecoveryModal = true" class="text-[9px] font-black text-primary hover:underline uppercase tracking-tighter">¿Olvidó su clave?</button>
               </div>
-              <div class="relative group">
-                <Lock class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" :size="20" />
+              <div class="relative">
+                <Lock class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" :size="16" />
                 <input 
-                  v-model="password"
+                  v-model="credentials.password"
                   :type="showPassword ? 'text' : 'password'" 
-                  required
-                  class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3.5 pl-12 pr-12 outline-none focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all text-slate-900"
+                  class="w-full bg-slate-50 border border-slate-100 rounded-xl py-3.5 pl-11 pr-11 outline-none focus:bg-white focus:border-primary transition-all text-sm font-bold text-secondary"
                   placeholder="••••••••"
                 />
-                <button 
-                  type="button"
-                  @click="showPassword = !showPassword"
-                  class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                >
-                  <Eye v-if="!showPassword" :size="20" />
-                  <EyeOff v-else :size="20" />
+                <button type="button" @click="showPassword = !showPassword" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-secondary">
+                  <Eye v-if="!showPassword" :size="18" />
+                  <EyeOff v-else :size="18" />
                 </button>
               </div>
             </div>
 
-            <!-- Error Message -->
-            <div v-if="error" class="p-4 bg-rose-50 border border-rose-100 rounded-xl text-rose-600 text-sm font-medium animate-in slide-in-from-top-2">
-              {{ error }}
+            <!-- Compact Text-only Validation -->
+            <div class="min-h-[1.25rem] flex items-center justify-center">
+              <transition name="fade">
+                <p v-if="apiError" class="text-[11px] font-bold text-rose-500 tracking-tight flex items-center gap-1">
+                  <AlertCircle :size="12" /> {{ apiError }}
+                </p>
+              </transition>
             </div>
 
-            <!-- Submit Button -->
             <button 
               type="submit" 
               :disabled="loading"
-              class="w-full bg-primary hover:bg-primary-hover text-white py-4 rounded-xl font-bold shadow-lg shadow-primary/25 flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+              class="w-full bg-primary hover:bg-primary-hover text-secondary py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-primary/20 flex items-center justify-center gap-3 transition-all active:scale-[0.98] disabled:opacity-50"
             >
-              <Loader2 v-if="loading" class="animate-spin" :size="20" />
-              <span v-else>Iniciar Sesión</span>
+              <Loader2 v-if="loading" class="animate-spin" :size="18" />
+              <template v-else>
+                <span>Iniciar Sesión</span>
+                <ArrowRight :size="18" />
+              </template>
             </button>
           </form>
         </div>
 
-        <div class="p-6 bg-slate-50 border-t border-slate-100 text-center">
-          <p class="text-sm text-slate-500">
-            ¿No tiene una cuenta? 
-            <a href="#" class="text-primary font-bold hover:underline">Solicitar acceso</a>
-          </p>
+        <p class="text-center mt-8 text-[9px] font-black text-slate-300 uppercase tracking-[0.3em]">StoreMaster &copy; 2026</p>
+      </div>
+    </transition>
+
+    <!-- Modal Recuperación -->
+    <transition name="modal-fade">
+      <div v-if="showRecoveryModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-secondary/90 backdrop-blur-sm" @click="showRecoveryModal = false"></div>
+        <div class="bg-white w-full max-w-sm rounded-[28px] shadow-2xl relative overflow-hidden animate-in zoom-in-95">
+          <div class="p-8 border-b border-slate-50 flex items-center justify-between">
+            <h2 class="text-sm font-black text-secondary uppercase">Recuperar Acceso</h2>
+            <button @click="showRecoveryModal = false" class="text-slate-300 hover:text-secondary"><X :size="20" /></button>
+          </div>
+          <form @submit.prevent="handleRecovery" class="p-8 space-y-4">
+            <input v-model="recovery.username" type="text" placeholder="Usuario" class="w-full bg-slate-50 border border-slate-100 rounded-xl py-3 px-4 text-sm font-bold outline-none focus:border-primary" />
+            <input v-model="recovery.newPassword" type="password" placeholder="Nueva Clave" class="w-full bg-slate-50 border border-slate-100 rounded-xl py-3 px-4 text-sm font-bold outline-none focus:border-primary" />
+            <p v-if="recoveryFeedback" class="text-[10px] font-bold text-center" :class="recoveryFeedback.type === 'success' ? 'text-emerald-500' : 'text-rose-500'">{{ recoveryFeedback.message }}</p>
+            <button type="submit" :disabled="recoveryLoading" class="w-full bg-secondary text-white py-3 rounded-xl font-black text-[11px] uppercase tracking-widest">
+              {{ recoveryLoading ? 'Procesando...' : 'Actualizar' }}
+            </button>
+          </form>
         </div>
       </div>
-
-      <!-- Footer Info -->
-      <p class="text-center text-slate-400 text-xs mt-8">
-        &copy; 2026 Store Microservices. Todos los derechos reservados.
-      </p>
-    </div>
+    </transition>
   </div>
 </template>
+
+<style scoped>
+.allegro-in-enter-active {
+  transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.allegro-in-enter-from {
+  opacity: 0;
+  transform: translateY(20px) scale(0.98);
+}
+.modal-fade-enter-active, .modal-fade-leave-active { transition: opacity 0.3s; }
+.modal-fade-enter-from, .modal-fade-leave-to { opacity: 0; }
+</style>

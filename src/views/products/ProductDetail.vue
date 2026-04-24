@@ -3,12 +3,14 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '../../api';
 import { useProductStore } from '../../stores/products';
-import { ChevronLeft, Package, ShoppingCart, Loader2, AlertTriangle, CheckCircle2, Box, Info } from 'lucide-vue-next';
+import { usePreferencesStore } from '../../stores/preferences';
+import { ChevronLeft, Package, ShoppingCart, Loader2, AlertTriangle, CheckCircle2, Box, Info, ShieldCheck } from 'lucide-vue-next';
 import StatusHandler from '../../components/ui/StatusHandler.vue';
 
 const route = useRoute();
 const router = useRouter();
 const productStore = useProductStore();
+const prefs = usePreferencesStore();
 
 const product = ref(null);
 const loading = ref(true);
@@ -101,7 +103,7 @@ const handlePurchase = async () => {
               </span>
             </div>
             <h1 class="text-5xl font-bold text-slate-900 mb-4 tracking-tight leading-tight">{{ product.name }}</h1>
-            <p class="text-4xl font-black text-primary">${{ product.price }}</p>
+            <p class="text-4xl font-black text-primary">{{ prefs.formatPrice(product.price) }}</p>
           </div>
 
           <div class="bg-white p-8 md:p-10 rounded-3xl space-y-8 border border-slate-200 shadow-xl shadow-slate-200/40 relative overflow-hidden">

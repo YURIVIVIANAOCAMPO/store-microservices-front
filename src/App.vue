@@ -1,139 +1,180 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from './stores/auth';
+import { usePreferencesStore } from './stores/preferences';
 import { 
-  LayoutDashboard, ShoppingBag, Users, Settings, 
-  LogOut, Menu, X, Bell, User as UserIcon, ShieldCheck
+  Store, ShoppingBag, Users, Settings, 
+  LogOut, Menu, X, Bell, User as UserIcon, ShieldCheck, 
+  ChevronRight, Box, Package, ChevronLeft, Globe, CheckCircle, AlertTriangle
 } from 'lucide-vue-next';
 
 const auth = useAuthStore();
+const prefs = usePreferencesStore();
 const router = useRouter();
 const route = useRoute();
 const isMobileMenuOpen = ref(false);
 
 const navItems = computed(() => {
   const items = [
-    { name: 'Catálogo', path: '/', icon: ShoppingBag, admin: false },
+    { name: 'Catálogo Browser', path: '/', icon: ShoppingBag, admin: false },
   ];
   
   if (auth.user?.role === 'ROLE_ADMIN') {
-    items.push({ name: 'Gestión', path: '/management', icon: LayoutDashboard, admin: true });
-    items.push({ name: 'Usuarios', path: '/users', icon: Users, admin: true });
+    items.push({ name: 'Gestión de Inventario', path: '/management', icon: Package, admin: true });
+    items.push({ name: 'Equipo y Accesos', path: '/users', icon: Users, admin: true });
   }
   
   return items;
 });
 
 const handleLogout = () => {
+  const username = auth.user?.username;
   auth.logout();
+  prefs.showToast(`Adiós ${username}, te esperamos pronto.`, 'info');
   router.push('/login');
 };
 
 const closeMobileMenu = () => {
   isMobileMenuOpen.value = false;
 };
+
+const currencies = ['USD', 'COP', 'MXN'];
 </script>
 
 <template>
-  <div v-if="auth.isAuthenticated" class="min-h-screen bg-background flex flex-col lg:flex-row">
+  <div v-if="auth.isAuthenticated" class="min-h-screen bg-[#F9FBFA] flex flex-col lg:flex-row overflow-hidden">
     <!-- Mobile Header -->
-    <header class="lg:hidden bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-40">
+    <header class="lg:hidden bg-secondary border-b border-white/10 px-6 py-4 flex items-center justify-between sticky top-0 z-40">
       <div class="flex items-center gap-2">
-        <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">
-          <LayoutDashboard :size="20" />
+        <div class="w-8 h-8 bg-primary rounded flex items-center justify-center text-secondary">
+          <Store :size="20" />
         </div>
-        <span class="font-bold text-slate-900 tracking-tight">StoreAdmin</span>
+        <span class="font-bold text-white tracking-tight">StoreMaster</span>
       </div>
-      <button @click="isMobileMenuOpen = true" class="p-2 text-slate-500 hover:bg-slate-50 rounded-lg">
+      <button @click="isMobileMenuOpen = true" class="p-2 text-white/70 hover:text-white">
         <Menu :size="24" />
       </button>
     </header>
 
-    <!-- Sidebar / Drawer -->
+    <!-- Sidebar (MongoDB Style) -->
     <aside 
-      class="fixed inset-0 z-50 lg:relative lg:z-0 transform transition-transform duration-300 lg:translate-x-0"
-      :class="isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'"
+      class="fixed inset-0 z-50 lg:relative lg:z-0 transform transition-all duration-300 ease-in-out"
+      :class="[
+        isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
+        prefs.isSidebarCollapsed ? 'lg:w-[70px]' : 'lg:w-[260px]'
+      ]"
     >
-      <!-- Backdrop -->
-      <div v-if="isMobileMenuOpen" @click="closeMobileMenu" class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm lg:hidden"></div>
+      <!-- Mobile Backdrop -->
+      <div v-if="isMobileMenuOpen" @click="closeMobileMenu" class="absolute inset-0 bg-black/60 backdrop-blur-sm lg:hidden"></div>
       
-      <div class="relative w-[280px] h-full bg-white border-r border-slate-200 flex flex-col shadow-2xl lg:shadow-none">
-        <!-- Sidebar Header -->
-        <div class="px-8 py-8 hidden lg:flex items-center gap-3">
-          <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
-            <LayoutDashboard :size="24" />
+      <div class="relative h-full bg-secondary flex flex-col border-r border-white/5 shadow-2xl lg:shadow-none overflow-hidden">
+        <!-- Toggle Button (Desktop) -->
+        <button 
+          @click="prefs.toggleSidebar"
+          class="hidden lg:flex absolute -right-3 top-10 w-6 h-6 bg-primary text-secondary rounded-full items-center justify-center shadow-lg hover:scale-110 transition-transform z-50"
+        >
+          <ChevronLeft v-if="!prefs.isSidebarCollapsed" :size="14" />
+          <ChevronRight v-else :size="14" />
+        </button>
+
+        <!-- Sidebar Brand -->
+        <div class="px-6 py-8 flex items-center gap-3 shrink-0">
+          <div class="w-8 h-8 bg-primary rounded flex items-center justify-center text-secondary shadow-[0_0_15px_rgba(0,237,100,0.3)] shrink-0">
+            <Store :size="20" />
           </div>
-          <span class="text-xl font-bold text-slate-900 tracking-tighter">StoreAdmin</span>
+          <div v-if="!prefs.isSidebarCollapsed" class="overflow-hidden whitespace-nowrap animate-in fade-in slide-in-from-left-2">
+            <span class="text-lg font-bold text-white tracking-tight leading-none block">StoreMaster</span>
+            <span class="text-[9px] text-primary font-black uppercase tracking-widest">Enterprise Retail</span>
+          </div>
         </div>
 
-        <div class="lg:hidden px-6 py-6 flex items-center justify-between border-b border-slate-50">
-           <span class="font-bold text-slate-900">Menú</span>
-           <button @click="closeMobileMenu" class="p-2 text-slate-400"><X :size="20" /></button>
+        <!-- Navigation Section -->
+        <div class="px-3 py-2 flex-1 overflow-y-auto custom-scrollbar">
+          <p v-if="!prefs.isSidebarCollapsed" class="px-3 py-2 text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-2 whitespace-nowrap">Operaciones</p>
+          <nav class="space-y-1">
+            <router-link 
+              v-for="item in navItems" 
+              :key="item.path"
+              :to="item.path"
+              @click="closeMobileMenu"
+              class="flex items-center gap-3 px-3 py-2.5 rounded transition-all group relative"
+              :class="route.path === item.path ? 'bg-[#00684A] text-white' : 'text-white/60 hover:bg-white/5 hover:text-white'"
+              v-tooltip="prefs.isSidebarCollapsed ? item.name : ''"
+            >
+              <div v-if="route.path === item.path" class="absolute left-0 top-0 bottom-0 w-[3px] bg-primary rounded-r"></div>
+              <component :is="item.icon" :size="20" :class="route.path === item.path ? 'text-primary' : 'text-white/40 group-hover:text-white/60'" class="shrink-0" />
+              <span v-if="!prefs.isSidebarCollapsed" class="text-[13px] font-medium whitespace-nowrap">{{ item.name }}</span>
+            </router-link>
+          </nav>
         </div>
 
-        <!-- Navigation -->
-        <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-          <router-link 
-            v-for="item in navItems" 
-            :key="item.path"
-            :to="item.path"
-            @click="closeMobileMenu"
-            class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all group"
-            :class="route.path === item.path ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'"
-          >
-            <component :is="item.icon" :size="20" :class="route.path === item.path ? 'text-white' : 'text-slate-400 group-hover:text-slate-600'" />
-            {{ item.name }}
-            <ShieldCheck v-if="item.admin" :size="14" class="ml-auto opacity-40" />
-          </router-link>
-        </nav>
-
-        <!-- Sidebar Footer -->
-        <div class="p-4 border-t border-slate-100 bg-slate-50/50">
-          <div class="flex items-center gap-3 p-3 mb-4 rounded-xl">
-            <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500">
-              <UserIcon :size="20" />
-            </div>
-            <div class="overflow-hidden">
-              <p class="text-sm font-bold text-slate-900 truncate">{{ auth.user?.username }}</p>
-              <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{{ auth.user?.role.replace('ROLE_', '') }}</p>
-            </div>
-          </div>
+        <!-- Footer / Disconnect -->
+        <div class="shrink-0 border-t border-white/5 bg-black/20 p-4">
           <button 
             @click="handleLogout"
-            class="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-rose-500 hover:bg-rose-50 transition-colors"
+            class="w-full flex items-center gap-3 px-3 py-2 rounded text-xs font-bold text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors"
           >
-            <LogOut :size="20" /> Cerrar Sesión
+            <LogOut :size="16" class="shrink-0" /> 
+            <span v-if="!prefs.isSidebarCollapsed">Salir del Sistema</span>
           </button>
         </div>
       </div>
     </aside>
 
-    <!-- Main Content -->
-    <main class="flex-1 flex flex-col h-screen overflow-hidden bg-[#f8fafc]">
-      <!-- Top Navbar -->
-      <header class="hidden lg:flex h-20 bg-white border-b border-slate-200 px-10 items-center justify-between sticky top-0 z-30">
-        <h2 class="text-xl font-bold text-slate-900">{{ route.name === 'products' ? 'Dashboard' : route.name?.charAt(0).toUpperCase() + route.name?.slice(1) }}</h2>
-        <div class="flex items-center gap-6">
-          <button class="p-2 text-slate-400 hover:text-slate-600 relative">
-            <Bell :size="20" />
-            <span class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden">
+      <!-- Header -->
+      <header class="h-16 bg-white border-b border-border flex items-center justify-between px-8 shrink-0 z-30">
+        <!-- Left Side: Breadcrumb -->
+        <div class="flex items-center gap-2 text-[12px] font-medium text-slate-500">
+          <span class="hover:text-secondary cursor-pointer">Admin</span>
+          <ChevronRight :size="14" />
+          <span class="text-secondary font-bold">{{ route.name?.charAt(0).toUpperCase() + route.name?.slice(1) }}</span>
+        </div>
+
+        <!-- Center Side: Currency Segmenter -->
+        <div class="hidden md:flex items-center bg-slate-50 border border-slate-200 rounded-lg p-1">
+          <button 
+            v-for="curr in currencies" 
+            :key="curr"
+            @click="prefs.setCurrency(curr)"
+            class="currency-btn"
+            :class="prefs.currency === curr ? 'currency-btn-active' : 'currency-btn-inactive'"
+          >
+            {{ curr }}
           </button>
-          <div class="h-8 w-[1px] bg-slate-200"></div>
-          <div class="flex items-center gap-3">
-            <div class="text-right">
-              <p class="text-xs font-bold text-slate-900">{{ auth.user?.username }}</p>
-              <p class="text-[10px] text-slate-500 uppercase tracking-widest">{{ auth.user?.role }}</p>
-            </div>
-            <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600">
-              <UserIcon :size="20" />
-            </div>
+        </div>
+        
+        <!-- Right Side: User Identity & Actions -->
+        <div class="flex items-center gap-6">
+          <!-- Currency (Mobile) -->
+          <div class="md:hidden flex items-center gap-2 text-[11px] font-bold text-slate-500">
+             <Globe :size="14" /> {{ prefs.currency }}
           </div>
+
+          <div class="flex items-center gap-3 pl-6 border-l border-slate-100">
+             <div class="text-right hidden sm:block">
+                <p class="text-[12px] font-bold text-secondary leading-none mb-1">{{ auth.user?.username }}</p>
+                <div class="flex items-center justify-end gap-1">
+                   <div class="w-1.5 h-1.5 rounded-full bg-primary"></div>
+                   <p class="text-[9px] text-slate-400 uppercase font-black tracking-widest">{{ auth.user?.role.replace('ROLE_', '') }}</p>
+                </div>
+             </div>
+             <div class="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 shadow-inner group cursor-pointer hover:border-primary/50 transition-all">
+                <UserIcon :size="18" class="group-hover:text-primary transition-colors" />
+             </div>
+          </div>
+          
+          <button class="text-slate-400 hover:text-secondary transition-colors relative">
+            <Bell :size="20" />
+            <span class="absolute -top-1 -right-1 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
+          </button>
         </div>
       </header>
 
-      <!-- View Content -->
-      <div class="flex-1 overflow-y-auto px-6 py-8 md:px-10 md:py-10">
+      <!-- Dashboard Viewport -->
+      <div class="flex-1 overflow-y-auto px-8 py-8 custom-scrollbar">
         <router-view v-slot="{ Component }">
           <transition name="fade" mode="out-in">
             <component :is="Component" />
@@ -146,18 +187,47 @@ const closeMobileMenu = () => {
   <div v-else>
     <router-view />
   </div>
+
+  <!-- Global Toast (Allegro Style) -->
+  <transition name="toast">
+    <div v-if="prefs.toast.show" class="fixed bottom-10 right-10 z-[100] animate-in slide-in-from-right-10">
+      <div 
+        class="flex items-center gap-4 px-6 py-4 rounded-2xl shadow-2xl border"
+        :class="[
+          prefs.toast.type === 'success' ? 'bg-[#001E2B] text-primary border-primary/20' : 
+          prefs.toast.type === 'error' ? 'bg-rose-900 text-white border-rose-500/30' : 
+          'bg-slate-900 text-white border-slate-700'
+        ]"
+      >
+        <CheckCircle v-if="prefs.toast.type === 'success'" :size="24" />
+        <AlertTriangle v-else :size="24" />
+        <div class="pr-8">
+           <p class="text-xs font-black uppercase tracking-widest opacity-50 mb-0.5">Notificación</p>
+           <p class="text-sm font-bold">{{ prefs.toast.message }}</p>
+        </div>
+        <button @click="prefs.toast.show = false" class="absolute top-4 right-4 opacity-50 hover:opacity-100">
+           <X :size="16" />
+        </button>
+      </div>
+    </div>
+  </transition>
 </template>
 
 <style>
-.fade-enter-active, .fade-leave-active {
-  transition: all 0.2s ease;
+.toast-enter-active, .toast-leave-active {
+  transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
 }
-.fade-enter-from {
+.toast-enter-from, .toast-leave-to {
   opacity: 0;
-  transform: translateY(10px);
+  transform: translateX(100px) scale(0.9);
 }
-.fade-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
+</style>
+
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 rounded-full border-2 border-solid border-transparent bg-clip-padding hover:bg-slate-300;
 }
 </style>

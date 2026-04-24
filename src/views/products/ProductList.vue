@@ -1,10 +1,12 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { useProductStore } from '../../stores/products';
+import { usePreferencesStore } from '../../stores/preferences';
 import { Search, Filter, ShoppingCart, ChevronLeft, ChevronRight, RefreshCw, Package } from 'lucide-vue-next';
 import StatusHandler from '../../components/ui/StatusHandler.vue';
 
 const productStore = useProductStore();
+const prefs = usePreferencesStore();
 const search = ref('');
 const statusFilter = ref('');
 const page = ref(0);
@@ -119,12 +121,12 @@ const changePage = (newPage) => {
           <p class="text-xs text-slate-400 font-medium mb-6">Consultar stock en detalle</p>
 
           <div class="mt-auto flex items-center justify-between pt-4 border-t border-slate-50">
-            <span class="text-xl font-black text-slate-900">${{ product.price }}</span>
+            <span class="text-xl font-black text-slate-900">{{ prefs.formatPrice(product.price) }}</span>
             <router-link 
               :to="{ name: 'product-detail', params: { id: product.id }}"
-              class="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg font-bold text-sm transition-all active:scale-95"
+              class="flex items-center gap-2 px-4 py-2 bg-primary/10 text-secondary hover:bg-primary rounded-lg font-bold text-sm transition-all active:scale-95 border border-primary/20"
             >
-               Comprar
+               Detalles
             </router-link>
           </div>
         </div>
