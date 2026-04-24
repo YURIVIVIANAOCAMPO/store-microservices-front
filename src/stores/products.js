@@ -66,9 +66,8 @@ export const useProductStore = defineStore('products', {
     async purchaseProduct(productId, quantity) {
       this.loading = true;
       try {
-        await api.post(`/products/${productId}/purchase`, { 
-          quantity 
-        }, {
+        await api.post(`/products/${productId}/purchase`, null, { 
+          params: { quantity },
           headers: { 'Idempotency-Key': `buy-${productId}-${Date.now()}` }
         });
         

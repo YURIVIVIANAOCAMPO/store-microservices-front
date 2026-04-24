@@ -210,11 +210,23 @@ const handleDelete = async () => {
          <div class="p-10 space-y-8">
             <div class="text-center">
                <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Unidades en Almacén Actual</p>
-               <div class="flex items-center justify-center gap-6">
-                  <button @click="stockToUpdate.stock--" class="w-14 h-14 rounded-2xl bg-slate-50 border border-[#E8EDEB] text-slate-400 hover:bg-rose-50 hover:text-rose-500 hover:border-rose-100 transition-all text-2xl font-bold">-</button>
-                  <input v-model="stockToUpdate.stock" type="number" class="w-24 text-center text-5xl font-black text-[#001E2B] outline-none bg-transparent" />
-                  <button @click="stockToUpdate.stock++" class="w-14 h-14 rounded-2xl bg-slate-50 border border-[#E8EDEB] text-slate-400 hover:bg-[#E6FCF5] hover:text-[#00ED64] hover:border-[#00ED64]/30 transition-all text-2xl font-bold">+</button>
-               </div>
+                <div class="flex items-center justify-center gap-8">
+                  <div class="flex-1"></div>
+                  <input 
+                    v-model.number="stockToUpdate.stock" 
+                    type="number" 
+                    min="0"
+                    class="w-40 text-center text-7xl font-black text-[#001E2B] outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                  />
+                  <button 
+                    type="button"
+                    @click="stockToUpdate.stock = (Number(stockToUpdate.stock) || 0) + 1" 
+                    class="w-20 h-20 rounded-3xl bg-[#00ED64] text-[#001E2B] hover:bg-white border-2 border-transparent hover:border-[#00ED64] transition-all text-4xl font-black flex items-center justify-center shadow-xl shadow-[#00ED64]/20 active:scale-90"
+                  >
+                    +
+                  </button>
+                  <div class="flex-1"></div>
+                </div>
             </div>
 
             <div class="space-y-4">
