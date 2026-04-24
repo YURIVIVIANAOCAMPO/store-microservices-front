@@ -123,7 +123,7 @@ const handleDelete = async () => {
 
 <template>
   <div class="space-y-8 animate-in fade-in duration-500">
-    <!-- MongoDB Header -->
+    <!-- Header -->
     <div class="flex items-center justify-between pb-8 border-b border-[#E8EDEB]">
       <div>
         <h1 class="text-3xl font-black text-[#001E2B] tracking-tighter">Control de Activos</h1>
@@ -134,7 +134,7 @@ const handleDelete = async () => {
       </button>
     </div>
 
-    <!-- MongoDB Toolbar -->
+    <!-- Toolbar -->
     <div class="flex flex-col sm:flex-row gap-4">
       <div class="relative flex-1 max-w-md">
         <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" :size="20" />

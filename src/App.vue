@@ -57,7 +57,7 @@ const currencies = ['USD', 'COP', 'MXN'];
       </button>
     </header>
 
-    <!-- Sidebar (MongoDB Style) -->
+    <!-- Sidebar  -->
     <aside 
       class="fixed inset-0 z-50 lg:relative lg:z-0 transform transition-all duration-300 ease-in-out"
       :class="[
