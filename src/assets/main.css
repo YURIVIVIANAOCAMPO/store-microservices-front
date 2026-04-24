@@ -3,18 +3,42 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
-  @apply bg-background text-slate-100 antialiased;
+  @apply bg-background text-slate-800 antialiased font-sans;
 }
 
-/* Glassmorphism utility */
+/* Corporate Card Style */
+.card {
+  @apply bg-surface border border-slate-200 rounded-xl shadow-sm transition-all duration-300;
+}
+
+.card-hover {
+  @apply hover:shadow-md hover:border-primary/20;
+}
+
+/* Glass effect for light mode */
 .glass {
-  @apply bg-surface/70 backdrop-blur-md border border-white/10;
+  @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-lg;
 }
 
-.glass-card {
-  @apply bg-white/5 backdrop-blur-sm border border-white/5 rounded-xl transition-all duration-300 hover:border-white/20 hover:-translate-y-1;
+/* Custom scrollbar for a cleaner look */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-slate-100;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 rounded-full hover:bg-slate-400;
+}
+
+/* Animations */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
 }

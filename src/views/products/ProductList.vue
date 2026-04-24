@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { useProductStore } from '../../stores/products';
-import { Search, Filter, ShoppingCart, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-vue-next';
+import { Search, Filter, ShoppingCart, ChevronLeft, ChevronRight, RefreshCw, Package } from 'lucide-vue-next';
 import StatusHandler from '../../components/ui/StatusHandler.vue';
 
 const productStore = useProductStore();
@@ -14,13 +14,12 @@ const fetch = (force = false) => {
     search: search.value,
     status: statusFilter.value || undefined,
     page: page.value,
-    size: 9
+    size: 8
   }, force);
 };
 
 onMounted(() => fetch());
 
-// Watchers for search and filters
 let timeout;
 watch([search, statusFilter], () => {
   clearTimeout(timeout);
@@ -39,46 +38,46 @@ const changePage = (newPage) => {
 </script>
 
 <template>
-  <div class="space-y-10 animate-in fade-in duration-500">
+  <div class="space-y-8 animate-in fade-in duration-500">
     <header class="flex flex-col md:flex-row md:items-center justify-between gap-6">
       <div>
-        <h1 class="text-4xl font-black tracking-tight mb-2">Product Catalog</h1>
-        <p class="text-slate-400">Manage and explore your store inventory with real-time updates.</p>
+        <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Catálogo de Productos</h1>
+        <p class="text-slate-500 mt-1">Explore y gestione el inventario disponible en tiempo real.</p>
       </div>
       
       <div class="flex items-center gap-3">
         <button 
           @click="fetch(true)"
-          class="p-3 rounded-xl glass hover:bg-white/10 text-slate-400 transition-all"
-          title="Refresh Catalog"
+          class="p-3 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-primary hover:border-primary/30 transition-all shadow-sm"
+          title="Refrescar Catálogo"
         >
           <RefreshCw :size="20" :class="{ 'animate-spin': productStore.loading }" />
         </button>
       </div>
     </header>
 
-    <!-- Search and Filters -->
-    <section class="glass p-4 rounded-2xl flex flex-col md:flex-row gap-4">
+    <!-- Filters -->
+    <section class="bg-white p-4 rounded-2xl border border-slate-200 flex flex-col lg:flex-row gap-4 shadow-sm">
       <div class="flex-1 relative">
-        <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" :size="20" />
+        <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" :size="20" />
         <input 
           v-model="search"
           type="text" 
-          placeholder="Search by name or SKU..." 
-          class="w-full bg-slate-800/50 border border-white/5 rounded-xl py-3 pl-12 pr-4 outline-none focus:border-primary transition-all"
+          placeholder="Buscar por nombre o SKU..." 
+          class="w-full bg-slate-50 border border-slate-100 rounded-xl py-3 pl-12 pr-4 outline-none focus:bg-white focus:border-primary transition-all"
         />
       </div>
       
       <div class="flex items-center gap-3">
-        <div class="relative">
-          <Filter class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" :size="18" />
+        <div class="relative min-w-[200px]">
+          <Filter class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" :size="18" />
           <select 
             v-model="statusFilter"
-            class="bg-slate-800/50 border border-white/5 rounded-xl py-3 pl-11 pr-8 outline-none focus:border-primary appearance-none transition-all"
+            class="w-full bg-slate-50 border border-slate-100 rounded-xl py-3 pl-11 pr-8 outline-none focus:bg-white focus:border-primary appearance-none transition-all cursor-pointer"
           >
-            <option value="">All Status</option>
-            <option value="ACTIVE">Active</option>
-            <option value="INACTIVE">Inactive</option>
+            <option value="">Todos los Estados</option>
+            <option value="ACTIVE">Activos</option>
+            <option value="INACTIVE">Inactivos</option>
           </select>
         </div>
       </div>
@@ -91,61 +90,77 @@ const changePage = (newPage) => {
       :empty="!productStore.loading && productStore.products.length === 0"
     >
       <template #error-action>
-        <button @click="fetch(true)" class="mt-6 px-6 py-2 bg-primary rounded-lg font-bold">Retry Connection</button>
+        <button @click="fetch(true)" class="mt-6 px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all">
+          Reintentar Conexión
+        </button>
       </template>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
         <div 
           v-for="product in productStore.products" 
           :key="product.id"
-          class="glass-card p-6 flex flex-col group"
+          class="bg-white border border-slate-200 rounded-2xl p-5 flex flex-col group hover:shadow-xl hover:border-primary/20 transition-all duration-300 relative overflow-hidden"
         >
           <div class="flex justify-between items-start mb-6">
             <span 
-              class="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider"
-              :class="product.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'"
+              class="px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-wider shadow-sm"
+              :class="product.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'"
             >
               {{ product.status }}
             </span>
-            <p class="text-[10px] text-slate-500 font-mono">{{ product.sku }}</p>
+            <p class="text-[10px] text-slate-400 font-mono font-bold">{{ product.sku }}</p>
           </div>
           
-          <h3 class="text-xl font-bold mb-2 group-hover:text-primary transition-colors">{{ product.name }}</h3>
-          <div class="flex items-center gap-2 text-slate-400 text-sm mb-6">
-            <span>Inventory available in detail</span>
+          <div class="mb-4 aspect-square bg-slate-50 rounded-xl flex items-center justify-center text-slate-200 group-hover:text-primary/20 transition-colors">
+            <Package :size="64" />
           </div>
 
-          <div class="mt-auto flex items-center justify-between pt-6 border-t border-white/5">
-            <span class="text-2xl font-black text-primary">${{ product.price }}</span>
+          <h3 class="text-lg font-bold text-slate-900 mb-1 group-hover:text-primary transition-colors line-clamp-1">{{ product.name }}</h3>
+          <p class="text-xs text-slate-400 font-medium mb-6">Consultar stock en detalle</p>
+
+          <div class="mt-auto flex items-center justify-between pt-4 border-t border-slate-50">
+            <span class="text-xl font-black text-slate-900">${{ product.price }}</span>
             <router-link 
               :to="{ name: 'product-detail', params: { id: product.id }}"
-              class="p-3 bg-white/5 hover:bg-primary hover:text-white rounded-xl transition-all"
+              class="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg font-bold text-sm transition-all active:scale-95"
             >
-              <ShoppingCart :size="20" />
+               Comprar
             </router-link>
           </div>
         </div>
       </div>
 
       <!-- Pagination -->
-      <div v-if="productStore.pagination.totalPages > 1" class="flex items-center justify-center gap-4 mt-12">
-        <button 
-          @click="changePage(page - 1)"
-          :disabled="page === 0"
-          class="p-2 glass rounded-lg disabled:opacity-30 transition-all"
-        >
-          <ChevronLeft />
-        </button>
-        <span class="text-sm font-medium text-slate-400">
-          Page {{ page + 1 }} of {{ productStore.pagination.totalPages }}
-        </span>
-        <button 
-          @click="changePage(page + 1)"
-          :disabled="page === productStore.pagination.totalPages - 1"
-          class="p-2 glass rounded-lg disabled:opacity-30 transition-all"
-        >
-          <ChevronRight />
-        </button>
+      <div v-if="productStore.pagination.totalPages > 1" class="flex flex-col sm:flex-row items-center justify-center gap-6 mt-12 bg-white p-4 rounded-2xl border border-slate-200">
+        <div class="flex items-center gap-2">
+          <button 
+            @click="changePage(page - 1)"
+            :disabled="page === 0"
+            class="p-2 border border-slate-200 rounded-lg disabled:opacity-30 hover:bg-slate-50 transition-all"
+          >
+            <ChevronLeft :size="20" />
+          </button>
+          
+          <div class="flex items-center gap-1">
+            <button 
+              v-for="p in productStore.pagination.totalPages" 
+              :key="p"
+              @click="changePage(p-1)"
+              class="w-10 h-10 rounded-lg text-sm font-bold transition-all"
+              :class="page === p-1 ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-500 hover:bg-slate-50'"
+            >
+              {{ p }}
+            </button>
+          </div>
+
+          <button 
+            @click="changePage(page + 1)"
+            :disabled="page === productStore.pagination.totalPages - 1"
+            class="p-2 border border-slate-200 rounded-lg disabled:opacity-30 hover:bg-slate-50 transition-all"
+          >
+            <ChevronRight :size="20" />
+          </button>
+        </div>
       </div>
     </StatusHandler>
   </div>

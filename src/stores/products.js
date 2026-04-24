@@ -47,19 +47,16 @@ export const useProductStore = defineStore('products', {
 
     async fetchStock(productId) {
       try {
-        // Assuming the endpoint exists based on standard patterns
         const res = await inventoryApi.get(`/inventory/${productId}`);
         this.inventory[productId] = res.data.data.quantity;
       } catch (err) {
-        console.error('Failed to fetch stock', err);
-        this.inventory[productId] = 'N/A';
+        this.inventory[productId] = 0;
       }
     },
 
     async purchaseProduct(productId, quantity) {
       this.loading = true;
       try {
-        // Calling Inventory Service directly as per requirement
         await inventoryApi.post('/inventory/purchases', { 
           productId, 
           quantity 
@@ -68,13 +65,50 @@ export const useProductStore = defineStore('products', {
         });
         
         this.cache.timestamp = null; // Invalidate cache
-        await this.fetchStock(productId); // Update stock
+        await this.fetchStock(productId);
         return { success: true };
       } catch (err) {
-        return { 
-          success: false, 
-          message: err.friendlyMessage || 'Error al procesar la compra' 
-        };
+        return { success: false, message: err.friendlyMessage };
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // CRUD Actions
+    async createProduct(productData) {
+      this.loading = true;
+      try {
+        await api.post('/products', productData);
+        this.cache.timestamp = null; // Invalidate cache
+        return { success: true };
+      } catch (err) {
+        return { success: false, message: err.friendlyMessage };
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async updateProduct(id, productData) {
+      this.loading = true;
+      try {
+        await api.put(`/products/${id}`, productData);
+        this.cache.timestamp = null; // Invalidate cache
+        return { success: true };
+      } catch (err) {
+        return { success: false, message: err.friendlyMessage };
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async deleteProduct(id) {
+      this.loading = true;
+      try {
+        await api.delete(`/products/${id}`);
+        this.cache.timestamp = null; // Invalidate cache
+        return { success: true };
+      } catch (err) {
+        return { success: false, message: err.friendlyMessage };
       } finally {
         this.loading = false;
       }

@@ -7,11 +7,20 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: "#6366f1",
-        secondary: "#ec4899",
-        accent: "#8b5cf6",
-        background: "#0f172a",
-        surface: "#1e293b",
+        primary: {
+          DEFAULT: "#00ed64", // MongoDB Green
+          hover: "#00c853",
+          light: "#e6fcf5"
+        },
+        secondary: "#001e2b", // MongoDB Dark Slate
+        accent: "#00684a",
+        background: "#f9fbfa",
+        surface: "#ffffff",
+        border: "#e8edea",
+        dark: {
+          sidebar: "#001e2b",
+          header: "#ffffff",
+        }
       }
     },
   },
