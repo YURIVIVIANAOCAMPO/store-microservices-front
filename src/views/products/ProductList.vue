@@ -14,7 +14,7 @@ const page = ref(0);
 const fetch = (force = false) => {
   productStore.fetchProducts({
     search: search.value,
-    status: statusFilter.value || undefined,
+    status: 'ACTIVE',
     page: page.value,
     size: 8
   }, force);
@@ -82,20 +82,6 @@ const getImageUrl = (product) => {
           placeholder="Buscar hardware por modelo o SKU..." 
           class="w-full bg-slate-50/50 border-transparent border rounded-[20px] py-4 pl-14 pr-6 outline-none focus:bg-white focus:border-[#00ED64] transition-all font-medium text-sm"
         />
-      </div>
-      
-      <div class="flex items-center gap-2 px-2">
-        <div class="relative min-w-[200px]">
-          <Filter class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" :size="16" />
-          <select 
-            v-model="statusFilter"
-            class="w-full bg-slate-50/50 border border-transparent rounded-[18px] py-4 pl-12 pr-10 outline-none focus:bg-white focus:border-[#00ED64] appearance-none transition-all cursor-pointer font-bold text-[10px] uppercase tracking-widest text-[#001E2B]"
-          >
-            <option value="">Todos los Estados</option>
-            <option value="ACTIVE">Disponibles</option>
-            <option value="INACTIVE">Archivados</option>
-          </select>
-        </div>
       </div>
     </section>
 
