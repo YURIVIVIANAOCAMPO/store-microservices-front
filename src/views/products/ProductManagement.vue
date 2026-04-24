@@ -51,13 +51,20 @@ const openCreate = () => {
 
 const openEdit = (product) => {
   editingProduct.value = product;
-  form.value = { ...product, initialStock: productStore.inventory[product.id] || 0 };
+  // Convert from USD base to current local currency for the input field
+  const localPrice = prefs.convertFromBase(product.price);
+  form.value = { ...product, price: localPrice, initialStock: productStore.inventory[product.id] || 0 };
   showModal.value = true;
 };
 
 const handleSubmit = async () => {
   loadingAction.value = true;
-  let result = editingProduct.value ? await productStore.updateProduct(editingProduct.value.id, form.value) : await productStore.createProduct(form.value);
+  
+  // Convert price back to USD base before sending to server
+  const basePrice = prefs.convertToBase(form.value.price);
+  const payload = { ...form.value, price: basePrice };
+
+  let result = editingProduct.value ? await productStore.updateProduct(editingProduct.value.id, payload) : await productStore.createProduct(payload);
   if (result.success) {
     showModal.value = false;
     fetchProducts();
@@ -266,8 +273,8 @@ const handleDelete = async () => {
               <input v-model="form.sku" type="text" required class="w-full bg-slate-50 border border-[#E8EDEB] rounded-xl py-4 px-5 text-sm font-bold outline-none focus:bg-white focus:border-[#00ED64] transition-all" />
             </div>
             <div class="space-y-1.5">
-              <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Precio MSRP</label>
-              <input v-model="form.price" type="number" step="0.01" required class="w-full bg-slate-50 border border-[#E8EDEB] rounded-xl py-4 px-5 text-sm font-bold outline-none focus:bg-white focus:border-[#00ED64] transition-all" />
+              <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Precio MSRP ({{ prefs.currency }})</label>
+              <input v-model="form.price" type="number" step="0.01" required class="w-full bg-slate-50 border border-slate-100 rounded-xl py-4 px-5 text-sm font-bold outline-none focus:bg-white focus:border-[#00ED64] transition-all" />
             </div>
           </div>
           <div v-if="!editingProduct" class="space-y-1.5">

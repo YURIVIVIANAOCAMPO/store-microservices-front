@@ -43,7 +43,6 @@ const currencies = ['USD', 'COP', 'MXN'];
 </script>
 
 <template>
-  <!-- Senior Plus: Show Admin Layout only if authenticated and NOT on login page -->
   <div v-if="auth.isAuthenticated && route.path !== '/login'" class="min-h-screen bg-[#F9FBFA] flex flex-col lg:flex-row">
     <!-- Mobile Header -->
     <header class="lg:hidden bg-[#001E2B] border-b border-white/10 px-6 py-4 flex items-center justify-between sticky top-0 z-40">
@@ -131,6 +130,19 @@ const currencies = ['USD', 'COP', 'MXN'];
           <span class="hover:text-secondary cursor-pointer">Admin</span>
           <ChevronRight :size="14" />
           <span class="text-secondary font-bold">{{ route.name?.charAt(0).toUpperCase() + route.name?.slice(1) }}</span>
+        </div>
+
+        <!-- Center Side: Currency Switcher -->
+        <div class="hidden md:flex items-center bg-slate-50 border border-slate-200 rounded-xl p-1 gap-1">
+          <button 
+            v-for="curr in currencies" 
+            :key="curr"
+            @click="prefs.setCurrency(curr)"
+            class="px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
+            :class="prefs.currency === curr ? 'bg-[#001E2B] text-white shadow-md' : 'text-slate-400 hover:text-secondary hover:bg-white'"
+          >
+            {{ curr }}
+          </button>
         </div>
 
         <!-- Right Side: User Identity & Actions -->
