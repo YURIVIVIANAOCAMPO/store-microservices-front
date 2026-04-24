@@ -29,7 +29,24 @@ onMounted(() => fetchProducts());
 
 const openCreate = () => {
   editingProduct.value = null;
-  form.value = { name: '', sku: '', price: 0, status: 'ACTIVE' };
+  
+  // Generar SKU consecutivo
+  let nextId = 1;
+  if (productStore.products.length > 0) {
+    const skus = productStore.products
+      .map(p => {
+        const match = p.sku.match(/\d+/);
+        return match ? parseInt(match[0]) : 0;
+      })
+      .filter(n => !isNaN(n));
+    
+    if (skus.length > 0) {
+      nextId = Math.max(...skus) + 1;
+    }
+  }
+  const autoSku = `PROD-${String(nextId).padStart(3, '0')}`;
+
+  form.value = { name: '', sku: autoSku, price: 0, status: 'ACTIVE' };
   showModal.value = true;
 };
 
