@@ -102,10 +102,6 @@ export const useProductStore = defineStore('products', {
       this.loading = true;
       try {
         const res = await api.post('/products', productData);
-        const newProduct = res.data.data;
-        if (productData.initialStock > 0) {
-          await this.syncStock(newProduct.id, productData.initialStock);
-        }
         this.cache.timestamp = null; // Invalidate cache
         return { success: true };
       } catch (err) {
