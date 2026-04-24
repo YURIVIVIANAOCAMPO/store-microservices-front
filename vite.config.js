@@ -7,12 +7,12 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'https://products-service-u496.onrender.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
       },
       '/inventory-api': {
-        target: 'http://localhost:8081',
+        target: 'https://products-service-u496.onrender.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/inventory-api/, '')
       }

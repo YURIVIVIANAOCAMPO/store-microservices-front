@@ -43,7 +43,8 @@ const currencies = ['USD', 'COP', 'MXN'];
 </script>
 
 <template>
-  <div v-if="auth.isAuthenticated" class="min-h-screen bg-[#F9FBFA] flex flex-col lg:flex-row">
+  <!-- Senior Plus: Show Admin Layout only if authenticated and NOT on login page -->
+  <div v-if="auth.isAuthenticated && route.path !== '/login'" class="min-h-screen bg-[#F9FBFA] flex flex-col lg:flex-row">
     <!-- Mobile Header -->
     <header class="lg:hidden bg-[#001E2B] border-b border-white/10 px-6 py-4 flex items-center justify-between sticky top-0 z-40">
       <div class="flex items-center gap-2">

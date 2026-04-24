@@ -2,6 +2,7 @@
 import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/auth';
+import { useProductStore } from '../../stores/products';
 import { usePreferencesStore } from '../../stores/preferences';
 import api from '../../api';
 import { 
@@ -10,6 +11,7 @@ import {
 } from 'lucide-vue-next';
 
 const auth = useAuthStore();
+const productStore = useProductStore();
 const prefs = usePreferencesStore();
 const router = useRouter();
 
@@ -23,6 +25,8 @@ const showRecoveryModal = ref(false);
 const apiError = ref('');
 const recoveryFeedback = ref(null);
 
+const isSuccess = ref(false);
+
 const handleLogin = async () => {
   if (!credentials.username || !credentials.password) {
     apiError.value = 'Complete todos los campos';
@@ -34,6 +38,9 @@ const handleLogin = async () => {
   try {
     const success = await auth.login(credentials.username, credentials.password);
     if (success) {
+      isSuccess.value = true;
+      // Senior Plus: Pre-load essential data before entering dashboard
+      await productStore.fetchProducts({}, true);
       prefs.showToast(`¡Bienvenido, ${credentials.username}!`, 'success');
       router.push('/');
     } else {
@@ -86,63 +93,68 @@ onMounted(() => { isMounted.value = true; });
         </div>
 
         <!-- Login Card -->
-        <div class="bg-white rounded-[28px] sm:rounded-[32px] shadow-2xl shadow-slate-200/50 border border-slate-100 p-8 sm:p-10">
-          <form @submit.prevent="handleLogin" class="space-y-5">
-            
-            <div class="space-y-1.5">
-              <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Usuario</label>
-              <div class="relative">
-                <Mail class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" :size="16" />
-                <input 
-                  v-model="credentials.username"
-                  type="text" 
-                  class="w-full bg-slate-50 border border-slate-100 rounded-xl py-3.5 pl-11 pr-4 outline-none focus:bg-white focus:border-primary transition-all text-sm font-bold text-secondary"
-                  placeholder="admin"
-                />
-              </div>
+        <div class="bg-white rounded-[28px] sm:rounded-[32px] shadow-2xl shadow-slate-200/50 border border-slate-100 p-8 sm:p-10 relative overflow-hidden">
+          <transition name="fade" mode="out-in">
+            <div v-if="isSuccess" class="py-10 text-center animate-pulse">
+               <Loader2 class="mx-auto text-primary animate-spin mb-4" :size="48" />
+               <p class="text-sm font-black text-secondary uppercase tracking-widest">Preparando sistema...</p>
+               <p class="text-[10px] text-slate-400 font-bold mt-2">Sincronizando catálogo y stock</p>
             </div>
-
-            <div class="space-y-1.5">
-              <div class="flex items-center justify-between ml-1">
-                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Contraseña</label>
-                <button type="button" @click="showRecoveryModal = true" class="text-[9px] font-black text-primary hover:underline uppercase tracking-tighter">¿Olvidó su clave?</button>
+            <form v-else @submit.prevent="handleLogin" class="space-y-5">
+              <div class="space-y-1.5">
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Usuario</label>
+                <div class="relative">
+                  <Mail class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" :size="16" />
+                  <input 
+                    v-model="credentials.username"
+                    type="text" 
+                    class="w-full bg-slate-50 border border-slate-100 rounded-xl py-3.5 pl-11 pr-4 outline-none focus:bg-white focus:border-primary transition-all text-sm font-bold text-secondary"
+                    placeholder="admin"
+                  />
+                </div>
               </div>
-              <div class="relative">
-                <Lock class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" :size="16" />
-                <input 
-                  v-model="credentials.password"
-                  :type="showPassword ? 'text' : 'password'" 
-                  class="w-full bg-slate-50 border border-slate-100 rounded-xl py-3.5 pl-11 pr-11 outline-none focus:bg-white focus:border-primary transition-all text-sm font-bold text-secondary"
-                  placeholder="••••••••"
-                />
-                <button type="button" @click="showPassword = !showPassword" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-secondary">
-                  <Eye v-if="!showPassword" :size="18" />
-                  <EyeOff v-else :size="18" />
-                </button>
+
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between ml-1">
+                  <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Contraseña</label>
+                  <button type="button" @click="showRecoveryModal = true" class="text-[9px] font-black text-primary hover:underline uppercase tracking-tighter">¿Olvidó su clave?</button>
+                </div>
+                <div class="relative">
+                  <Lock class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" :size="16" />
+                  <input 
+                    v-model="credentials.password"
+                    :type="showPassword ? 'text' : 'password'" 
+                    class="w-full bg-slate-50 border border-slate-100 rounded-xl py-3.5 pl-11 pr-11 outline-none focus:bg-white focus:border-primary transition-all text-sm font-bold text-secondary"
+                    placeholder="••••••••"
+                  />
+                  <button type="button" @click="showPassword = !showPassword" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-secondary">
+                    <Eye v-if="!showPassword" :size="18" />
+                    <EyeOff v-else :size="18" />
+                  </button>
+                </div>
               </div>
-            </div>
 
-            <!-- Compact Text-only Validation -->
-            <div class="min-h-[1.25rem] flex items-center justify-center">
-              <transition name="fade">
-                <p v-if="apiError" class="text-[11px] font-bold text-rose-500 tracking-tight flex items-center gap-1">
-                  <AlertCircle :size="12" /> {{ apiError }}
-                </p>
-              </transition>
-            </div>
+              <div class="min-h-[1.25rem] flex items-center justify-center">
+                <transition name="fade">
+                  <p v-if="apiError" class="text-[11px] font-bold text-rose-500 tracking-tight flex items-center gap-1">
+                    <AlertCircle :size="12" /> {{ apiError }}
+                  </p>
+                </transition>
+              </div>
 
-            <button 
-              type="submit" 
-              :disabled="loading"
-              class="w-full bg-primary hover:bg-primary-hover text-secondary py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-primary/20 flex items-center justify-center gap-3 transition-all active:scale-[0.98] disabled:opacity-50"
-            >
-              <Loader2 v-if="loading" class="animate-spin" :size="18" />
-              <template v-else>
-                <span>Iniciar Sesión</span>
-                <ArrowRight :size="18" />
-              </template>
-            </button>
-          </form>
+              <button 
+                type="submit" 
+                :disabled="loading"
+                class="w-full bg-primary hover:bg-primary-hover text-secondary py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-primary/20 flex items-center justify-center gap-3 transition-all active:scale-[0.98] disabled:opacity-50"
+              >
+                <Loader2 v-if="loading" class="animate-spin" :size="18" />
+                <template v-else>
+                  <span>Iniciar Sesión</span>
+                  <ArrowRight :size="18" />
+                </template>
+              </button>
+            </form>
+          </transition>
         </div>
 
         <p class="text-center mt-8 text-[9px] font-black text-slate-300 uppercase tracking-[0.3em]">StoreMaster &copy; 2026</p>
