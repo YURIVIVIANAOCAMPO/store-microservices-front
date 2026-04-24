@@ -79,7 +79,7 @@ const openStockAdjustment = (product) => {
   stockToUpdate.value = { 
     id: product.id, 
     name: product.name,
-    stock: productStore.inventory[product.id] || 0 
+    stock: 0 
   };
   showStockModal.value = true;
 };
@@ -209,7 +209,7 @@ const handleDelete = async () => {
          
          <div class="p-10 space-y-8">
             <div class="text-center">
-               <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Unidades en Almacén Actual</p>
+               <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Unidades a Incrementar</p>
                 <div class="flex items-center justify-center gap-8">
                   <div class="flex-1"></div>
                   <input 
